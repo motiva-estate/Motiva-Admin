@@ -1,0 +1,122 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { FileText, Lock, ExternalLink } from "lucide-react";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/context";
+import { api } from "@/lib/api/client";
+import { isDocumentVisible, resolveDocumentUrl } from "@/lib/portal/visibility";
+
+export const Route = createFileRoute("/portal/documents/")({
+  head: () => ({
+    meta: [
+      { title: "Documents — Motiva Subscriber Portal" },
+      { name: "description", content: "Receipts, allocation letters and title documents for your Motiva subscriptions." },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
+  component: PortalDocuments,
+});
+
+function PortalDocuments() {
+  const { user } = useAuth();
+  const clientId = user?.clientId;
+
+  const { data: subs } = useQuery({
+    queryKey: ["portal", "subscriptions", clientId],
+    queryFn: async () => (await api.subscriptions.list()).filter((s) => s.clientId === clientId),
+    enabled: !!clientId,
+  });
+  const { data: docs, isLoading } = useQuery({
+    queryKey: ["portal", "documents", clientId],
+    queryFn: () => api.documents.listForClient(clientId!),
+    enabled: !!clientId,
+  });
+
+  // Group docs by subscription.
+  const groups = (subs ?? []).map((s) => ({
+    sub: s,
+    docs: (docs ?? []).filter((d) => d.subscriptionId === s.id),
+  }));
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="font-display text-3xl text-foreground">Documents</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Grouped by subscription. Receipts are visible immediately; title deeds and allocation letters unlock automatically once the linked payment milestone is met.
+        </p>
+      </div>
+
+      {isLoading && <div className="text-sm text-muted-foreground">Loading documents…</div>}
+
+      {!isLoading && (!docs || docs.length === 0) && (
+        <Card>
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">
+            No documents have been uploaded to your subscriptions yet.
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-8">
+        {groups.map(({ sub, docs: items }) => (
+          <section key={sub.id}>
+            <div className="mb-3 flex items-end justify-between gap-3">
+              <div>
+                <h2 className="font-display text-lg text-foreground">{sub.plan}</h2>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  {sub.projectRefType === "land" ? "Land parcel" : "Residence"} · {items.length} document{items.length === 1 ? "" : "s"}
+                </p>
+              </div>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/portal/subscriptions/$id" params={{ id: sub.id }}>Open subscription</Link>
+              </Button>
+            </div>
+            {items.length === 0 ? (
+              <Card><CardContent className="py-6 text-center text-xs text-muted-foreground">
+                No documents yet on this subscription.
+              </CardContent></Card>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {items.map((d) => {
+                  const visible = isDocumentVisible(d, sub);
+                  const url = resolveDocumentUrl(d, sub);
+                  return (
+                    <Card key={d.id}>
+                      <CardContent className="flex items-start justify-between gap-4 py-4">
+                        <div className="flex items-start gap-3">
+                          {visible ? <FileText className="mt-0.5 h-5 w-5 text-primary" /> : <Lock className="mt-0.5 h-5 w-5 text-muted-foreground" />}
+                          <div>
+                            <div className="text-sm font-medium text-foreground">{d.label}</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">Uploaded {format(new Date(d.uploadedAt), "PP")}</div>
+                            {!visible && (
+                              <div className="mt-1 text-xs text-muted-foreground">
+                                {d.visibility === "on_full_payment"
+                                  ? "Unlocks once this subscription is fully paid."
+                                  : `Unlocks on milestone: ${d.visibility.replace("on_milestone:", "")}`}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {visible && !!url ? (
+                          <Button asChild size="sm" variant="outline">
+                            <a href={url} target="_blank" rel="noreferrer">View <ExternalLink className="ml-1 h-3 w-3" /></a>
+                          </Button>
+                        ) : (
+                          <Badge variant="outline">Locked</Badge>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
