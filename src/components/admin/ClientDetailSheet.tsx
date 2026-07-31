@@ -100,15 +100,15 @@ export function ClientDetailSheet({
   );
 
   const totalPaid = (payments ?? []).reduce((sum, p) => sum + p.amount, 0);
-  const balanceLeft = Math.max(0, (latestSub?.amount ?? 0) * 400 - totalPaid); // fake balance derived
-  const derivedBalance = latestSub ? Math.max(0, 850_000_000 - totalPaid) : 0;
+  const balanceLeft = Math.max(0, (latestSub?.amount ?? 0) - totalPaid); //balance derived
+  // const derivedBalance = latestSub ? Math.max(0, 850_000_000 - totalPaid) : 0;
 
   const activity = useMemo(() => {
     if (!clientId) return [];
     type Event = { id: string; label: string; date: string };
     const events: Event[] = [];
     (payments ?? []).forEach((p) =>
-      events.push({ id: `pay-${p.id}`, label: `Payment recorded — ${p.label}`, date: p.date }),
+      events.push({ id: `pay-${p._id}`, label: `Payment recorded — ${p.label}`, date: p.date }),
     );
     clientSubs.forEach((s) =>
       events.push({
@@ -218,9 +218,7 @@ export function ClientDetailSheet({
                   </div>
                   <div className="rounded-md border border-border/60 p-3">
                     <div className="text-xs text-muted-foreground">Balance left</div>
-                    <div className="mt-1 text-base font-medium">
-                      {formatNaira(derivedBalance || balanceLeft)}
-                    </div>
+                    <div className="mt-1 text-base font-medium">{formatNaira(balanceLeft)}</div>
                   </div>
                 </div>
                 {(payments ?? []).length === 0 ? (
@@ -296,14 +294,16 @@ export function ClientDetailSheet({
                   <p className="text-sm text-muted-foreground">No activity yet.</p>
                 ) : (
                   <ul className="space-y-2">
-                    {activity.map((e) => (
-                      <li key={e.id} className="flex items-start justify-between gap-4 text-sm">
-                        <span className="text-foreground">{e.label}</span>
-                        <span className="shrink-0 text-xs text-muted-foreground">
-                          {format(new Date(e.date), "MMM d")}
-                        </span>
-                      </li>
-                    ))}
+                    {activity.map((e) => {
+                      return (
+                        <li key={e.id} className="flex items-start justify-between gap-4 text-sm">
+                          <span className="text-foreground">{e.label}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {format(new Date(e.date), "MMM d")}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </Section>

@@ -296,7 +296,7 @@ function ClientEditor() {
                       <div>
                         <div className="text-sm font-medium">{p.title}</div>
                         <div className="text-xs text-muted-foreground">
-                          {p.location}, {p.city}
+                          {p.location}
                         </div>
                       </div>
                     </label>
