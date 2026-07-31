@@ -16,7 +16,10 @@ export const Route = createFileRoute("/portal/account/")({
   head: () => ({
     meta: [
       { title: "Account — Motiva Subscriber Portal" },
-      { name: "description", content: "Confirm the contact details Motiva uses for reminders and updates." },
+      {
+        name: "description",
+        content: "Confirm the contact details Motiva uses for reminders and updates.",
+      },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -30,7 +33,7 @@ function PortalAccount() {
 
   const { data: client } = useQuery({
     queryKey: ["portal", "client", clientId],
-    queryFn: () => api.clients.get(clientId!),
+    queryFn: () => api.portal.getProfile(),
     enabled: !!clientId,
   });
 
@@ -49,7 +52,7 @@ function PortalAccount() {
 
   const save = useMutation({
     mutationFn: () =>
-      api.clients.update(clientId!, {
+      api.portal.updateProfile({
         email,
         phone,
         contactConfirmedAt: new Date().toISOString(),
@@ -79,7 +82,9 @@ function PortalAccount() {
             <div className="text-sm">
               <div className="font-medium text-foreground">Confirm your contact details</div>
               <div className="text-xs text-muted-foreground">
-                Please review the email and phone below and press <span className="font-medium">Save changes</span> so we can send reminders to the right channels.
+                Please review the email and phone below and press{" "}
+                <span className="font-medium">Save changes</span> so we can send reminders to the
+                right channels.
               </div>
             </div>
           </CardContent>
@@ -97,18 +102,29 @@ function PortalAccount() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone">Phone / WhatsApp</Label>
-            <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234 …" />
+            <Input
+              id="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+234 …"
+            />
           </div>
           <Button onClick={() => save.mutate()} disabled={save.isPending}>
             {save.isPending ? "Saving…" : "Save changes"}
           </Button>
           {client?.contactConfirmedAt && (
             <p className="flex items-center gap-1 text-xs text-emerald-700">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Confirmed on {new Date(client.contactConfirmedAt).toLocaleDateString()}
+              <CheckCircle2 className="h-3.5 w-3.5" /> Confirmed on{" "}
+              {new Date(client.contactConfirmedAt).toLocaleDateString()}
             </p>
           )}
         </CardContent>
@@ -122,19 +138,24 @@ function PortalAccount() {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-medium">Email reminders</div>
-              <div className="text-xs text-muted-foreground">Installment due-date notices to your email.</div>
+              <div className="text-xs text-muted-foreground">
+                Installment due-date notices to your email.
+              </div>
             </div>
             <Switch checked={emailNotif} onCheckedChange={setEmailNotif} />
           </div>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-medium">WhatsApp reminders</div>
-              <div className="text-xs text-muted-foreground">Short message to your registered WhatsApp number.</div>
+              <div className="text-xs text-muted-foreground">
+                Short message to your registered WhatsApp number.
+              </div>
             </div>
             <Switch checked={whatsappNotif} onCheckedChange={setWhatsappNotif} />
           </div>
           <p className="text-xs text-muted-foreground">
-            Automated reminders arrive in Phase 2 — your preference is saved now so nothing changes when they switch on.
+            Automated reminders arrive in Phase 2 — your preference is saved now so nothing changes
+            when they switch on.
           </p>
         </CardContent>
       </Card>
@@ -145,9 +166,12 @@ function PortalAccount() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Password changes will be handled once accounts are live. For now, use the "Forgot password" link on the sign-in screen to reach the admin team.
+            Password changes will be handled once accounts are live. For now, use the "Forgot
+            password" link on the sign-in screen to reach the admin team.
           </p>
-          <Button variant="outline" size="sm" disabled>Change password (coming soon)</Button>
+          <Button variant="outline" size="sm" disabled>
+            Change password (coming soon)
+          </Button>
         </CardContent>
       </Card>
     </div>

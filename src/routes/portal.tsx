@@ -72,7 +72,7 @@ function PortalShell({
   const clientId = user.clientId;
   const { data: subs } = useQuery({
     queryKey: ["portal", "subscriptions", clientId],
-    queryFn: async () => (await api.subscriptions.list()).filter((s) => s.clientId === clientId),
+    queryFn: () => api.portal.listSubscriptions(),
     enabled: !!clientId,
   });
   const { data: updates } = useQuery({
@@ -81,7 +81,8 @@ function PortalShell({
     enabled: !!clientId,
   });
 
-  const activeCount = subs?.filter((s) => (s.amountPaid ?? 0) < (s.totalPrice ?? s.amount ?? 0)).length ?? 0;
+  const activeCount =
+    subs?.filter((s) => (s.amountPaid ?? 0) < (s.totalPrice ?? s.amount ?? 0)).length ?? 0;
   const nextDue = subs
     ?.filter((s) => s.nextDueDate)
     .map((s) => ({ id: s.id, days: daysUntil(s.nextDueDate) ?? 9999 }))
@@ -107,26 +108,32 @@ function PortalShell({
                 <div className="text-sm font-medium leading-none">{user.fullName}</div>
                 <div className="text-xs opacity-75">{user.email}</div>
               </div>
-              <Button variant="outline" size="sm" onClick={logout}
-                className="border-white/25 bg-transparent text-primary-foreground hover:bg-white/10 hover:text-primary-foreground">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={logout}
+                className="border-white/25 bg-transparent text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
+              >
                 <LogOut className="mr-1 h-4 w-4" /> Sign out
               </Button>
             </div>
           </div>
           <div className="mt-6 grid grid-cols-3 gap-3 sm:max-w-xl">
-            <StatChip label="Active subscriptions" value={String(subs?.length ?? 0)} sub={activeCount ? `${activeCount} paying` : "All settled"} />
+            <StatChip
+              label="Active subscriptions"
+              value={String(subs?.length ?? 0)}
+              sub={activeCount ? `${activeCount} paying` : "All settled"}
+            />
             <StatChip
               label="Next payment"
-              value={
-                nextDue && nextDue.days >= 0
-                  ? `${nextDue.days}d`
-                  : nextDue
-                    ? "Overdue"
-                    : "—"
-              }
+              value={nextDue && nextDue.days >= 0 ? `${nextDue.days}d` : nextDue ? "Overdue" : "—"}
               sub={nextDue ? "until due" : "nothing scheduled"}
             />
-            <StatChip label="Project updates" value={String(updateCount)} sub={updateCount ? "posted for you" : "none yet"} />
+            <StatChip
+              label="Project updates"
+              value={String(updateCount)}
+              sub={updateCount ? "posted for you" : "none yet"}
+            />
           </div>
         </div>
         <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 sm:px-6">

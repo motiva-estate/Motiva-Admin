@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
 import { api } from "@/lib/api/client";
 import type { Land } from "@/lib/api/types";
 
@@ -19,7 +20,11 @@ export const Route = createFileRoute("/admin/land/")({
 });
 
 function slugify(s: string) {
-  return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function parseSizes(v: string): number[] {
@@ -152,16 +157,18 @@ function LandPage() {
             <Textarea
               rows={4}
               value={(form.estateAmenities ?? []).join("\n")}
-              onChange={(e) => setForm({ ...form, estateAmenities: parseAmenities(e.target.value) })}
+              onChange={(e) =>
+                setForm({ ...form, estateAmenities: parseAmenities(e.target.value) })
+              }
             />
           </div>
-          <div className="space-y-2">
-            <Label>Cover image URL</Label>
-            <Input
-              value={form.coverUrl ?? form.coverImageUrl ?? ""}
-              onChange={(e) => setForm({ ...form, coverUrl: e.target.value })}
-            />
-          </div>
+          <CloudinaryUpload
+            label="Cover image"
+            value={form.coverUrl ?? form.coverImageUrl ?? ""}
+            onChange={(url) => setForm({ ...form, coverUrl: url })}
+            accept="image/*"
+            category="update_photo"
+          />
         </>
       )}
     />

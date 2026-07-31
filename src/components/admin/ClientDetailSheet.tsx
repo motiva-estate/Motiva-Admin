@@ -5,12 +5,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Check, FileText, Pencil, Send, X } from "lucide-react";
 
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ClientStatusBadge } from "@/components/admin/StatusBadges";
@@ -30,11 +25,7 @@ function initialsOf(first?: string, last?: string, full?: string) {
 }
 
 function SectionHeading({ children }: { children: ReactNode }) {
-  return (
-    <h3 className="text-xs font-medium text-muted-foreground mb-3">
-      {children}
-    </h3>
-  );
+  return <h3 className="text-xs font-medium text-muted-foreground mb-3">{children}</h3>;
 }
 
 function Row({ label, value }: { label: string; value?: ReactNode }) {
@@ -75,11 +66,12 @@ export function ClientDetailSheet({
     queryFn: () => api.clients.get(clientId!),
     enabled: open,
   });
-  const { data: subs } = useQuery({
+  const { data: subsResult } = useQuery({
     queryKey: ["subscriptions"],
-    queryFn: () => api.subscriptions.list(),
+    queryFn: () => api.subscriptions.list({ clientId: clientId!, limit: 100 }),
     enabled: open,
   });
+  const subs = subsResult?.data;
   const { data: payments } = useQuery({
     queryKey: ["payments", clientId],
     queryFn: () => api.payments.byClient(clientId!),
@@ -90,11 +82,12 @@ export function ClientDetailSheet({
     queryFn: () => api.projects.list(),
     enabled: open,
   });
-  const { data: audit } = useQuery({
+  const { data: auditResult } = useQuery({
     queryKey: ["auditLog"],
-    queryFn: () => api.auditLog.list(),
+    queryFn: () => api.auditLog.list({ entityId: clientId!, limit: 50 }),
     enabled: open,
   });
+  const audit = auditResult?.data;
 
   const clientSubs = useMemo(
     () => (subs ?? []).filter((s) => s.clientId === clientId),
@@ -118,22 +111,27 @@ export function ClientDetailSheet({
       events.push({ id: `pay-${p.id}`, label: `Payment recorded — ${p.label}`, date: p.date }),
     );
     clientSubs.forEach((s) =>
-      events.push({ id: `sub-${s.id}`, label: `Subscribed to ${s.plan}`, date: s.createdAt }),
+      events.push({
+        id: `sub-${s._id ?? s.id}`,
+        label: `Subscribed to ${s.plan}`,
+        date: s.createdAt,
+      }),
     );
     (audit ?? [])
       .filter((a) => a.entityId === clientId || a.entityType === "Client")
       .forEach((a) =>
-        events.push({ id: `al-${a.id}`, label: `${a.actorName} ${a.action.toLowerCase()} ${a.entityType}`, date: a.createdAt }),
+        events.push({
+          id: `al-${a.id}`,
+          label: `${a.actorName} ${a.action.toLowerCase()} ${a.entityType}`,
+          date: a.createdAt,
+        }),
       );
     return events.sort((a, b) => +new Date(b.date) - +new Date(a.date));
   }, [clientId, payments, clientSubs, audit]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="w-full sm:max-w-[440px] p-0 flex flex-col gap-0"
-      >
+      <SheetContent side="right" className="w-full sm:max-w-[440px] p-0 flex flex-col gap-0">
         {!client ? (
           <DetailSkeleton />
         ) : (
@@ -142,7 +140,11 @@ export function ClientDetailSheet({
               <div className="flex items-start gap-4">
                 <div className="h-14 w-14 shrink-0 rounded-full bg-muted grid place-items-center overflow-hidden">
                   {client.passportPhotoUrl ? (
-                    <img src={client.passportPhotoUrl} alt="" className="h-full w-full object-cover" />
+                    <img
+                      src={client.passportPhotoUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <span className="text-sm font-medium text-muted-foreground">
                       {initialsOf(client.firstName, client.lastName, client.fullName)}
@@ -196,7 +198,9 @@ export function ClientDetailSheet({
                 <Row label="Plan" value={latestSub?.plan} />
                 <Row
                   label="Start"
-                  value={latestSub ? format(new Date(latestSub.startDate), "MMM d, yyyy") : undefined}
+                  value={
+                    latestSub ? format(new Date(latestSub.startDate), "MMM d, yyyy") : undefined
+                  }
                 />
                 <Row
                   label="End"
@@ -260,7 +264,11 @@ export function ClientDetailSheet({
                     <Row label="Signature" value={client.signatureName} />
                     <Row
                       label="Date signed"
-                      value={client.signatureDate ? format(new Date(client.signatureDate), "MMM d, yyyy") : undefined}
+                      value={
+                        client.signatureDate
+                          ? format(new Date(client.signatureDate), "MMM d, yyyy")
+                          : undefined
+                      }
                     />
                   </>
                 ) : (
@@ -303,7 +311,7 @@ export function ClientDetailSheet({
 
             <div className="border-t border-border/60 px-6 py-4 flex gap-2 bg-background">
               <Button asChild variant="outline" className="flex-1">
-                <Link to="/admin/clients/$id" params={{ id: client.id }}>
+                <Link to="/admin/clients/$id" params={{ id: client._id }}>
                   <Pencil className="mr-1.5 h-4 w-4" /> Edit client
                 </Link>
               </Button>

@@ -13,7 +13,10 @@ export const Route = createFileRoute("/portal/updates/")({
   head: () => ({
     meta: [
       { title: "Project updates — Motiva Subscriber Portal" },
-      { name: "description", content: "Timeline of progress updates for the projects and parcels you're subscribed to." },
+      {
+        name: "description",
+        content: "Timeline of progress updates for the projects and parcels you're subscribed to.",
+      },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -30,7 +33,7 @@ function PortalUpdates() {
   });
   const { data: subs } = useQuery({
     queryKey: ["portal", "subscriptions", clientId],
-    queryFn: async () => (await api.subscriptions.list()).filter((s) => s.clientId === clientId),
+    queryFn: () => api.portal.listSubscriptions(),
     enabled: !!clientId,
   });
   const [filter, setFilter] = useState<string | null>(null);
@@ -45,7 +48,8 @@ function PortalUpdates() {
       <div>
         <h1 className="font-display text-3xl text-foreground">Project updates</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Progress notes posted by the Motiva team for projects and parcels linked to your subscriptions.
+          Progress notes posted by the Motiva team for projects and parcels linked to your
+          subscriptions.
         </p>
       </div>
 
@@ -80,13 +84,21 @@ function PortalUpdates() {
       )}
 
       <div className="space-y-4">
-        {shown.map((u) => <UpdateCard key={u.id} update={u} />)}
+        {shown.map((u) => (
+          <UpdateCard key={u.id} update={u} />
+        ))}
       </div>
     </div>
   );
 }
 
-function UpdateCard({ update: u }: { update: NonNullable<ReturnType<typeof api.projectUpdates.listForClient> extends Promise<infer T> ? T : never>[number] }) {
+function UpdateCard({
+  update: u,
+}: {
+  update: NonNullable<
+    ReturnType<typeof api.projectUpdates.listForClient> extends Promise<infer T> ? T : never
+  >[number];
+}) {
   const { data: info } = useQuery({
     queryKey: ["portal", "projectRef", u.projectRef, u.projectRefType],
     queryFn: () => resolveProjectRef(u.projectRef, u.projectRefType),
@@ -105,7 +117,9 @@ function UpdateCard({ update: u }: { update: NonNullable<ReturnType<typeof api.p
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
                 {u.projectRefType === "land" ? "Land parcel" : "Project"}
               </div>
-              <div className="font-display text-lg text-foreground">{info?.name ?? u.projectRef}</div>
+              <div className="font-display text-lg text-foreground">
+                {info?.name ?? u.projectRef}
+              </div>
             </div>
             <Badge variant="outline">{format(new Date(u.postedAt), "PP")}</Badge>
           </div>

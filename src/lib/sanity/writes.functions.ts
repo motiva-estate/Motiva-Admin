@@ -40,7 +40,7 @@ const createInput = z.object({
 });
 
 export const sanityCreate = createServerFn({ method: "POST" })
-  .inputValidator((data: z.infer<typeof createInput>) => createInput.parse(data))
+  .validator((data: z.infer<typeof createInput>) => createInput.parse(data))
   .handler(async ({ data }) => {
     assertAdmin(data.actorEmail);
     const client = await getWriteClient();
@@ -55,7 +55,7 @@ const updateInput = z.object({
 });
 
 export const sanityUpdate = createServerFn({ method: "POST" })
-  .inputValidator((data: z.infer<typeof updateInput>) => updateInput.parse(data))
+  .validator((data: z.infer<typeof updateInput>) => updateInput.parse(data))
   .handler(async ({ data }) => {
     assertAdmin(data.actorEmail);
     const client = await getWriteClient();
@@ -69,7 +69,7 @@ const removeInput = z.object({
 });
 
 export const sanityRemove = createServerFn({ method: "POST" })
-  .inputValidator((data: z.infer<typeof removeInput>) => removeInput.parse(data))
+  .validator((data: z.infer<typeof removeInput>) => removeInput.parse(data))
   .handler(async ({ data }) => {
     assertAdmin(data.actorEmail);
     const client = await getWriteClient();

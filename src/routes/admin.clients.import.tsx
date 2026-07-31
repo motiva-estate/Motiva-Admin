@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api/client";
 import type { Client } from "@/lib/api/types";
+import { ArrowBigLeft, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/admin/clients/import")({
   component: ClientImport,
@@ -43,26 +44,36 @@ function parseCsv(text: string): string[][] {
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     if (inQuotes) {
-      if (ch === '"' && text[i + 1] === '"') { cur += '"'; i++; }
-      else if (ch === '"') inQuotes = false;
+      if (ch === '"' && text[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else if (ch === '"') inQuotes = false;
       else cur += ch;
     } else {
       if (ch === '"') inQuotes = true;
-      else if (ch === ",") { row.push(cur); cur = ""; }
-      else if (ch === "\n" || ch === "\r") {
+      else if (ch === ",") {
+        row.push(cur);
+        cur = "";
+      } else if (ch === "\n" || ch === "\r") {
         if (ch === "\r" && text[i + 1] === "\n") i++;
-        row.push(cur); cur = "";
+        row.push(cur);
+        cur = "";
         if (row.some((c) => c.trim() !== "")) rows.push(row);
         row = [];
       } else cur += ch;
     }
   }
-  if (cur !== "" || row.length) { row.push(cur); if (row.some((c) => c.trim() !== "")) rows.push(row); }
+  if (cur !== "" || row.length) {
+    row.push(cur);
+    if (row.some((c) => c.trim() !== "")) rows.push(row);
+  }
   return rows;
 }
 
 function ClientImport() {
-  const template = HEADERS.join(",") + "\n" +
+  const template =
+    HEADERS.join(",") +
+    "\n" +
     "Ada,Example,ada@example.com,+2348010000000,12 Marina Lagos,John,Example,+2348020000000,12 Marina Lagos,true,Ada Example,2025-01-15\n" +
     "Chinedu,Test,chinedu@example.com,,,,,,,false,,";
   const [csv, setCsv] = useState(template);
@@ -71,7 +82,10 @@ function ClientImport() {
 
   const validate = () => {
     const parsed = parseCsv(csv);
-    if (parsed.length === 0) { setRows([]); return; }
+    if (parsed.length === 0) {
+      setRows([]);
+      return;
+    }
     const header = parsed[0].map((h) => h.trim());
     const idx = (name: string) => header.findIndex((h) => h.toLowerCase() === name.toLowerCase());
     const body = parsed.slice(1);
@@ -150,12 +164,21 @@ function ClientImport() {
   const errorCount = rows.length - validCount;
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-full">
       <PageHeader
         title="Bulk import clients"
         description="Upload or paste CSV rows matching the subscription form. Validate first, then commit."
         actions={
-          <Button variant="outline" onClick={downloadTemplate}>Download template</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={downloadTemplate}>
+              Download template
+            </Button>
+            <Button asChild>
+              <Link to="/admin/clients">
+                <ArrowBigLeft className="mr-1 h-4 w-4" /> Back
+              </Link>
+            </Button>
+          </div>
         }
       />
       <Card>
@@ -164,16 +187,24 @@ function ClientImport() {
             <input
               type="file"
               accept=".csv,text/csv"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) readFile(f); }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) readFile(f);
+              }}
               className="text-sm"
             />
-            <span className="text-xs text-muted-foreground">
-              Columns: {HEADERS.join(", ")}
-            </span>
+            <span className="text-xs text-muted-foreground">Columns: {HEADERS.join(", ")}</span>
           </div>
-          <Textarea rows={10} value={csv} onChange={(e) => setCsv(e.target.value)} className="font-mono text-xs" />
+          <Textarea
+            rows={10}
+            value={csv}
+            onChange={(e) => setCsv(e.target.value)}
+            className="font-mono text-xs"
+          />
           <div className="flex gap-2">
-            <Button variant="outline" onClick={validate}>Validate</Button>
+            <Button variant="outline" onClick={validate}>
+              Validate
+            </Button>
             <Button onClick={commit} disabled={rows.length === 0 || validCount === 0 || importing}>
               {importing ? "Importing…" : `Import ${validCount} row${validCount === 1 ? "" : "s"}`}
             </Button>

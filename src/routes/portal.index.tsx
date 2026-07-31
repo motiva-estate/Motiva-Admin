@@ -12,13 +12,21 @@ import { api } from "@/lib/api/client";
 import type { Subscription } from "@/lib/api/types";
 import { currency } from "@/lib/portal/visibility";
 import { buildSchedule, daysUntil } from "@/lib/portal/schedule";
-import { resolveProjectRef, phaseList, phaseIndex, type ProjectRefInfo } from "@/lib/portal/project-ref";
+import {
+  resolveProjectRef,
+  phaseList,
+  phaseIndex,
+  type ProjectRefInfo,
+} from "@/lib/portal/project-ref";
 
 export const Route = createFileRoute("/portal/")({
   head: () => ({
     meta: [
       { title: "Overview — Motiva Subscriber Portal" },
-      { name: "description", content: "Your Motiva subscriptions, balances and recent project updates in one place." },
+      {
+        name: "description",
+        content: "Your Motiva subscriptions, balances and recent project updates in one place.",
+      },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -31,7 +39,7 @@ function PortalHome() {
 
   const { data: subs, isLoading } = useQuery({
     queryKey: ["portal", "subscriptions", clientId],
-    queryFn: async () => (await api.subscriptions.list()).filter((s) => s.clientId === clientId),
+    queryFn: () => api.portal.listSubscriptions(),
     enabled: !!clientId,
   });
 
@@ -44,9 +52,12 @@ function PortalHome() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-display text-3xl text-foreground">Welcome back, {user?.fullName.split(" ")[0]}.</h1>
+        <h1 className="font-display text-3xl text-foreground">
+          Welcome back, {user?.fullName.split(" ")[0]}.
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Each subscription is shown separately — balances and progress are never merged across purchases.
+          Each subscription is shown separately — balances and progress are never merged across
+          purchases.
         </p>
       </div>
 
@@ -58,7 +69,9 @@ function PortalHome() {
               <div>
                 <div className="text-sm font-medium text-foreground">
                   Next installment{" "}
-                  {nextDue.days >= 0 ? `due in ${nextDue.days} day${nextDue.days === 1 ? "" : "s"}` : `${Math.abs(nextDue.days)} day${Math.abs(nextDue.days) === 1 ? "" : "s"} overdue`}
+                  {nextDue.days >= 0
+                    ? `due in ${nextDue.days} day${nextDue.days === 1 ? "" : "s"}`
+                    : `${Math.abs(nextDue.days)} day${Math.abs(nextDue.days) === 1 ? "" : "s"} overdue`}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {nextDue.sub.plan} · {format(new Date(nextDue.sub.nextDueDate!), "PPP")}
@@ -70,25 +83,35 @@ function PortalHome() {
                 Generate payment reference
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link to="/portal/subscriptions/$id" params={{ id: nextDue.sub.id }}>Details</Link>
+                <Link
+                  to="/portal/subscriptions/$id"
+                  params={{ id: nextDue.sub._id ?? nextDue.sub.id ?? "" }}
+                >
+                  Details
+                </Link>
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {isLoading && <div className="text-sm text-muted-foreground">Loading your subscriptions…</div>}
+      {isLoading && (
+        <div className="text-sm text-muted-foreground">Loading your subscriptions…</div>
+      )}
 
       {!isLoading && (!subs || subs.length === 0) && (
         <Card>
           <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            No subscriptions yet. Once your first payment is confirmed, your subscription will appear here.
+            No subscriptions yet. Once your first payment is confirmed, your subscription will
+            appear here.
           </CardContent>
         </Card>
       )}
 
       <div className="grid gap-5 lg:grid-cols-2">
-        {subs?.map((sub) => <SubscriptionCard key={sub.id} sub={sub} />)}
+        {subs?.map((sub) => (
+          <SubscriptionCard key={sub.id} sub={sub} />
+        ))}
       </div>
     </div>
   );
@@ -124,7 +147,8 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 text-white">
           <div>
             <div className="text-[10px] uppercase tracking-wide opacity-80">
-              {sub.projectRefType === "land" ? "Land parcel" : "Residence"} · {sub.paymentPlan ?? "Custom plan"}
+              {sub.projectRefType === "land" ? "Land parcel" : "Residence"} ·{" "}
+              {sub.paymentPlan ?? "Custom plan"}
             </div>
             <div className="font-display text-lg leading-tight">{info?.name ?? sub.plan}</div>
             {info?.location && <div className="text-xs opacity-85">{info.location}</div>}
@@ -158,7 +182,10 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
           <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
             <span>{pct}% paid</span>
             {nextRow && !fullyPaid && (
-              <span>Next: {currency(nextRow.amount, sub.currency)} · {format(new Date(nextRow.dueDate), "PP")}</span>
+              <span>
+                Next: {currency(nextRow.amount, sub.currency)} ·{" "}
+                {format(new Date(nextRow.dueDate), "PP")}
+              </span>
             )}
           </div>
         </div>
@@ -170,7 +197,10 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
           </div>
           <ul className="divide-y divide-border">
             {schedule.slice(0, 4).map((r) => (
-              <li key={r.index} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+              <li
+                key={r.index}
+                className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+              >
                 <span className="flex items-center gap-2">
                   {r.status === "paid" ? (
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
@@ -179,7 +209,11 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
                   ) : (
                     <Circle className="h-4 w-4 text-muted-foreground" />
                   )}
-                  <span className={r.status === "paid" ? "text-muted-foreground line-through" : "text-foreground"}>
+                  <span
+                    className={
+                      r.status === "paid" ? "text-muted-foreground line-through" : "text-foreground"
+                    }
+                  >
                     Installment {r.index}
                   </span>
                 </span>
@@ -200,8 +234,13 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
         {updates && updates.length > 0 && (
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Recent updates</div>
-              <Link to="/portal/updates" className="text-xs text-muted-foreground hover:text-foreground">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                Recent updates
+              </div>
+              <Link
+                to="/portal/updates"
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
                 See all
               </Link>
             </div>
@@ -211,7 +250,9 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
                   <Megaphone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <div className="flex-1">
                     <p className="line-clamp-2 text-foreground">{u.text}</p>
-                    <p className="text-xs text-muted-foreground">{format(new Date(u.postedAt), "PP")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(u.postedAt), "PP")}
+                    </p>
                   </div>
                 </li>
               ))}
@@ -221,12 +262,14 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
 
         <div className="flex items-center gap-2 pt-1">
           <Button asChild size="sm">
-            <Link to="/portal/subscriptions/$id" params={{ id: sub.id }}>
+            <Link to="/portal/subscriptions/$id" params={{ id: sub._id ?? sub.id ?? "" }}>
               View subscription <ArrowRight className="ml-1 h-3.5 w-3.5" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link to="/portal/documents"><FileText className="mr-1 h-4 w-4" /> Documents</Link>
+            <Link to="/portal/documents">
+              <FileText className="mr-1 h-4 w-4" /> Documents
+            </Link>
           </Button>
         </div>
       </CardContent>
@@ -239,14 +282,20 @@ function PhaseStrip({ current }: { current: ProjectRefInfo["projectStatus"] }) {
   const idx = phaseIndex(current);
   return (
     <div>
-      <div className="mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">Project status</div>
+      <div className="mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+        Project status
+      </div>
       <div className="flex items-center gap-1.5">
         {phases.map((p, i) => {
           const active = i <= idx;
           return (
             <div key={p} className="flex flex-1 flex-col items-start gap-1">
-              <div className={`h-1.5 w-full rounded-full ${active ? "bg-[#D7C49E]" : "bg-muted"}`} />
-              <div className={`text-[10px] uppercase tracking-wide ${i === idx ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+              <div
+                className={`h-1.5 w-full rounded-full ${active ? "bg-[#D7C49E]" : "bg-muted"}`}
+              />
+              <div
+                className={`text-[10px] uppercase tracking-wide ${i === idx ? "text-foreground font-medium" : "text-muted-foreground"}`}
+              >
                 {p === "pre-sale" ? "Pre-sale" : p === "ongoing" ? "Ongoing" : "Delivered"}
               </div>
             </div>

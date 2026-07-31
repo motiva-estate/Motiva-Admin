@@ -13,12 +13,7 @@ export interface Payment {
   currency: string;
 }
 
-export type Role =
-  | "SUPER_ADMIN"
-  | "ADMINISTRATOR"
-  | "CONTENT_EDITOR"
-  | "VIEWER"
-  | "SUBSCRIBER";
+export type Role = "SUPER_ADMIN" | "ADMINISTRATOR" | "CONTENT_EDITOR" | "VIEWER" | "SUBSCRIBER";
 export type ContentStatus = "DRAFT" | "REVIEW" | "PUBLISHED" | "ARCHIVED";
 export type ClientStatus = "LEAD" | "ACTIVE" | "LAPSED" | "CONVERTED";
 export type ClientSource = "WEBSITE_FORM" | "BULK_IMPORT" | "MANUAL" | "REFERRAL";
@@ -231,7 +226,7 @@ export interface NextOfKin {
 }
 
 export interface Client {
-  id: string;
+  _id: string;
   fullName: string;
   firstName?: string;
   lastName?: string;
@@ -267,7 +262,8 @@ export interface Installment {
 }
 
 export interface Subscription {
-  id: string;
+  _id: string;
+  id?: string; // alias populated by the API normaliser (_id → id)
   clientId: string;
   plan: string;
   status: SubscriptionStatus;
@@ -293,10 +289,7 @@ export interface Subscription {
 
 // Documents attached to a subscription by admin, released to the
 // subscriber based on `visibility`. See PRD §4.6.
-export type DocumentVisibility =
-  | "immediate"
-  | "on_full_payment"
-  | `on_milestone:${string}`;
+export type DocumentVisibility = "immediate" | "on_full_payment" | `on_milestone:${string}`;
 
 export interface SubscriberDocument {
   id: string;

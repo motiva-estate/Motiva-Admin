@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
 import { api } from "@/lib/api/client";
 import type { Achievement, LeadershipEntry } from "@/lib/api/types";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -17,7 +18,10 @@ function TeamPage() {
   const [tab, setTab] = useState("leadership");
   return (
     <div>
-      <PageHeader title="Team & Milestones" description="Leadership bios and company achievements." />
+      <PageHeader
+        title="Team & Milestones"
+        description="Leadership bios and company achievements."
+      />
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="leadership">Leadership</TabsTrigger>
@@ -40,11 +44,43 @@ function TeamPage() {
             ]}
             renderForm={(form, setForm) => (
               <>
-                <div className="space-y-2"><Label>Name</Label><Input value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Role</Label><Input value={form.role ?? ""} onChange={(e) => setForm({ ...form, role: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Bio</Label><Textarea rows={3} value={form.bio ?? ""} onChange={(e) => setForm({ ...form, bio: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Photo URL</Label><Input value={form.photoUrl ?? ""} onChange={(e) => setForm({ ...form, photoUrl: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Order</Label><Input type="number" value={form.order ?? 0} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} /></div>
+                <div className="space-y-2">
+                  <Label>Name</Label>
+                  <Input
+                    value={form.name ?? ""}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <Input
+                    value={form.role ?? ""}
+                    onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Bio</Label>
+                  <Textarea
+                    rows={3}
+                    value={form.bio ?? ""}
+                    onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                  />
+                </div>
+                <CloudinaryUpload
+                  label="Photo"
+                  value={form.photoUrl ?? ""}
+                  onChange={(url) => setForm({ ...form, photoUrl: url })}
+                  accept="image/*"
+                  category="kyc_photo"
+                />
+                <div className="space-y-2">
+                  <Label>Order</Label>
+                  <Input
+                    type="number"
+                    value={form.order ?? 0}
+                    onChange={(e) => setForm({ ...form, order: Number(e.target.value) })}
+                  />
+                </div>
               </>
             )}
           />
@@ -66,11 +102,38 @@ function TeamPage() {
             ]}
             renderForm={(form, setForm) => (
               <>
-                <div className="space-y-2"><Label>Title</Label><Input value={form.title ?? ""} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Description</Label><Textarea rows={3} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+                <div className="space-y-2">
+                  <Label>Title</Label>
+                  <Input
+                    value={form.title ?? ""}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Textarea
+                    rows={3}
+                    value={form.description ?? ""}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2"><Label>Year</Label><Input type="number" value={form.year ?? new Date().getFullYear()} onChange={(e) => setForm({ ...form, year: Number(e.target.value) })} /></div>
-                  <div className="space-y-2"><Label>Order</Label><Input type="number" value={form.order ?? 0} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} /></div>
+                  <div className="space-y-2">
+                    <Label>Year</Label>
+                    <Input
+                      type="number"
+                      value={form.year ?? new Date().getFullYear()}
+                      onChange={(e) => setForm({ ...form, year: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Order</Label>
+                    <Input
+                      type="number"
+                      value={form.order ?? 0}
+                      onChange={(e) => setForm({ ...form, order: Number(e.target.value) })}
+                    />
+                  </div>
                 </div>
               </>
             )}

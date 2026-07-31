@@ -3,13 +3,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/lib/api/client";
 import type { Subscription } from "@/lib/api/types";
@@ -24,16 +26,18 @@ interface Props {
 
 export function RecordPaymentDialog({ open, onOpenChange, subscription, allowPick }: Props) {
   const qc = useQueryClient();
-  const { data: subs } = useQuery({
+  const { data: subsResult } = useQuery({
     queryKey: ["subscriptions"],
-    queryFn: () => api.subscriptions.list(),
+    queryFn: () => api.subscriptions.list({ limit: 200 }),
     enabled: !!allowPick,
   });
-  const { data: clients } = useQuery({
+  const { data: clientsResult } = useQuery({
     queryKey: ["clients"],
-    queryFn: () => api.clients.list(),
+    queryFn: () => api.clients.list({ limit: 200 }),
     enabled: !!allowPick,
   });
+  const subs = subsResult?.data;
+  const clients = clientsResult?.data;
 
   const [subId, setSubId] = useState<string>("");
   const [amount, setAmount] = useState(0);
@@ -42,21 +46,21 @@ export function RecordPaymentDialog({ open, onOpenChange, subscription, allowPic
 
   useEffect(() => {
     if (open) {
-      setSubId(subscription?.id ?? "");
+      setSubId(subscription?._id ?? "");
       setAmount(0);
       setLabel("Installment");
       setDate(new Date().toISOString().slice(0, 10));
     }
   }, [open, subscription]);
 
-  const activeSub = subscription ?? subs?.find((s) => s.id === subId);
+  const activeSub = subscription ?? subs?.find((s) => s._id === subId);
 
   const record = useMutation({
     mutationFn: async () => {
       if (!activeSub) throw new Error("Pick a subscription");
       return api.payments.record({
         clientId: activeSub.clientId,
-        subscriptionId: activeSub.id,
+        subscriptionId: activeSub._id,
         date: new Date(date).toISOString(),
         label,
         amount,
@@ -74,17 +78,25 @@ export function RecordPaymentDialog({ open, onOpenChange, subscription, allowPic
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Record payment</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Record payment</DialogTitle>
+        </DialogHeader>
         <div className="space-y-4">
           {allowPick && !subscription && (
             <div className="space-y-2">
               <Label>Subscription</Label>
               <Select value={subId} onValueChange={setSubId}>
-                <SelectTrigger><SelectValue placeholder="Select subscription…" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select subscription…" />
+                </SelectTrigger>
                 <SelectContent>
                   {subs?.map((s) => {
-                    const c = clients?.find((x) => x.id === s.clientId);
-                    return <SelectItem key={s.id} value={s.id}>{c?.fullName ?? "?"} — {s.plan}</SelectItem>;
+                    const c = clients?.find((x) => x._id === s.clientId);
+                    return (
+                      <SelectItem key={s._id} value={s._id}>
+                        {c?.fullName ?? "?"} — {s.plan}
+                      </SelectItem>
+                    );
                   })}
                 </SelectContent>
               </Select>
@@ -103,7 +115,11 @@ export function RecordPaymentDialog({ open, onOpenChange, subscription, allowPic
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Amount</Label>
-              <Input type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+              <Input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
+              />
             </div>
             <div className="space-y-2">
               <Label>Date</Label>

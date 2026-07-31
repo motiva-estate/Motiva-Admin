@@ -8,13 +8,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/client";
-import { isDocumentVisible, resolveDocumentUrl } from "@/lib/portal/visibility";
 
 export const Route = createFileRoute("/portal/documents/")({
   head: () => ({
     meta: [
       { title: "Documents — Motiva Subscriber Portal" },
-      { name: "description", content: "Receipts, allocation letters and title documents for your Motiva subscriptions." },
+      {
+        name: "description",
+        content: "Receipts, allocation letters and title documents for your Motiva subscriptions.",
+      },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -27,12 +29,12 @@ function PortalDocuments() {
 
   const { data: subs } = useQuery({
     queryKey: ["portal", "subscriptions", clientId],
-    queryFn: async () => (await api.subscriptions.list()).filter((s) => s.clientId === clientId),
+    queryFn: () => api.portal.listSubscriptions(),
     enabled: !!clientId,
   });
   const { data: docs, isLoading } = useQuery({
     queryKey: ["portal", "documents", clientId],
-    queryFn: () => api.documents.listForClient(clientId!),
+    queryFn: () => api.documents.listPortal(),
     enabled: !!clientId,
   });
 
@@ -47,7 +49,8 @@ function PortalDocuments() {
       <div>
         <h1 className="font-display text-3xl text-foreground">Documents</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Grouped by subscription. Receipts are visible immediately; title deeds and allocation letters unlock automatically once the linked payment milestone is met.
+          Grouped by subscription. Receipts are visible immediately; title deeds and allocation
+          letters unlock automatically once the linked payment milestone is met.
         </p>
       </div>
 
@@ -68,30 +71,43 @@ function PortalDocuments() {
               <div>
                 <h2 className="font-display text-lg text-foreground">{sub.plan}</h2>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  {sub.projectRefType === "land" ? "Land parcel" : "Residence"} · {items.length} document{items.length === 1 ? "" : "s"}
+                  {sub.projectRefType === "land" ? "Land parcel" : "Residence"} · {items.length}{" "}
+                  document{items.length === 1 ? "" : "s"}
                 </p>
               </div>
               <Button asChild variant="ghost" size="sm">
-                <Link to="/portal/subscriptions/$id" params={{ id: sub.id }}>Open subscription</Link>
+                <Link to="/portal/subscriptions/$id" params={{ id: sub._id ?? sub.id ?? "" }}>
+                  Open subscription
+                </Link>
               </Button>
             </div>
             {items.length === 0 ? (
-              <Card><CardContent className="py-6 text-center text-xs text-muted-foreground">
-                No documents yet on this subscription.
-              </CardContent></Card>
+              <Card>
+                <CardContent className="py-6 text-center text-xs text-muted-foreground">
+                  No documents yet on this subscription.
+                </CardContent>
+              </Card>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {items.map((d) => {
-                  const visible = isDocumentVisible(d, sub);
-                  const url = resolveDocumentUrl(d, sub);
+                  // The portal endpoint returns server-computed visibility & url.
+                  // Fall back to the raw visibility field for the locked message.
+                  const visible = (d as any).visible ?? false;
+                  const url = (d as any).url ?? null;
                   return (
                     <Card key={d.id}>
                       <CardContent className="flex items-start justify-between gap-4 py-4">
                         <div className="flex items-start gap-3">
-                          {visible ? <FileText className="mt-0.5 h-5 w-5 text-primary" /> : <Lock className="mt-0.5 h-5 w-5 text-muted-foreground" />}
+                          {visible ? (
+                            <FileText className="mt-0.5 h-5 w-5 text-primary" />
+                          ) : (
+                            <Lock className="mt-0.5 h-5 w-5 text-muted-foreground" />
+                          )}
                           <div>
                             <div className="text-sm font-medium text-foreground">{d.label}</div>
-                            <div className="mt-0.5 text-xs text-muted-foreground">Uploaded {format(new Date(d.uploadedAt), "PP")}</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">
+                              Uploaded {format(new Date(d.uploadedAt), "PP")}
+                            </div>
                             {!visible && (
                               <div className="mt-1 text-xs text-muted-foreground">
                                 {d.visibility === "on_full_payment"
@@ -103,7 +119,9 @@ function PortalDocuments() {
                         </div>
                         {visible && !!url ? (
                           <Button asChild size="sm" variant="outline">
-                            <a href={url} target="_blank" rel="noreferrer">View <ExternalLink className="ml-1 h-3 w-3" /></a>
+                            <a href={url} target="_blank" rel="noreferrer">
+                              View <ExternalLink className="ml-1 h-3 w-3" />
+                            </a>
                           </Button>
                         ) : (
                           <Badge variant="outline">Locked</Badge>

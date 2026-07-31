@@ -4,26 +4,33 @@ import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { TableSkeleton } from "@/components/admin/Skeletons";
 import { Users2 } from "lucide-react";
 import { ClientStatusBadge, SubStatusBadge } from "@/components/admin/StatusBadges";
 import { ClientDetailSheet } from "@/components/admin/ClientDetailSheet";
+import { Paginator } from "@/components/admin/Paginator";
 import { api } from "@/lib/api/client";
-import { useState } from "react";
+
+const PAGE_SIZE = 25;
 
 const searchSchema = z.object({
   client: z.string().optional(),
 });
-
 
 export const Route = createFileRoute("/admin/clients/")({
   validateSearch: zodValidator(searchSchema),
@@ -32,17 +39,24 @@ export const Route = createFileRoute("/admin/clients/")({
 
 function ClientsList() {
   const qc = useQueryClient();
-  const navigate = useNavigate({ from: "/admin/clients" });
+  const navigate = useNavigate({ from: "/admin/clients/" });
   const { client: openClientId } = Route.useSearch();
   const [q, setQ] = useState("");
-  const { data: clients, isLoading } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => api.clients.list(),
+  const [page, setPage] = useState(1);
+
+  const { data: result, isLoading } = useQuery({
+    queryKey: ["clients", page, q],
+    queryFn: () => api.clients.list({ q: q || undefined, page, limit: PAGE_SIZE }),
+    placeholderData: (prev) => prev,
   });
-  const { data: subs } = useQuery({
-    queryKey: ["subscriptions"],
-    queryFn: () => api.subscriptions.list(),
+
+  // Fetch a full (unpaginated) list of subscriptions just for the inline badge —
+  // limited to 100 to avoid a heavy request.
+  const { data: subsResult } = useQuery({
+    queryKey: ["subscriptions", "all100"],
+    queryFn: () => api.subscriptions.list({ limit: 100 }),
   });
+
   const del = useMutation({
     mutationFn: (id: string) => api.clients.remove(id),
     onSuccess: () => {
@@ -51,31 +65,33 @@ function ClientsList() {
     },
   });
 
-  const subsByClient = new Map<string, typeof subs>();
-  (subs ?? []).forEach((s) => {
-    const arr = subsByClient.get(s.clientId) ?? [];
-    arr.push(s);
-    subsByClient.set(s.clientId, arr);
-  });
-  const latestSub = (id: string) => {
-    const arr = subsByClient.get(id);
-    if (!arr || arr.length === 0) return undefined;
-    return [...arr].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0];
+  const clients = result?.data ?? [];
+  const total = result?.total ?? 0;
+  const subs = subsResult?.data ?? [];
+
+  // Index latest sub per client
+  const latestSub = (clientId: string) => {
+    const matching = subs.filter((s) => s.clientId === clientId);
+    if (!matching.length) return undefined;
+    return [...matching].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0];
   };
 
-  const filtered = (clients ?? []).filter((c) => {
-    if (!q) return true;
-    const s = q.toLowerCase();
-    return (
-      c.fullName.toLowerCase().includes(s) ||
-      c.email.toLowerCase().includes(s) ||
-      (c.phone ?? "").toLowerCase().includes(s)
-    );
-  });
+  // Reset to page 1 when search query changes
+  const handleSearch = (v: string) => {
+    setQ(v);
+    setPage(1);
+  };
 
   const openClient = (id: string) =>
-    navigate({ search: { client: id }, replace: false });
-  const closeClient = () => navigate({ search: {}, replace: false });
+    navigate({ search: (prev: any) => ({ ...prev, client: id }), replace: false });
+  const closeClient = () =>
+    navigate({
+      search: (prev: any) => {
+        const { client: _, ...rest } = prev;
+        return rest;
+      },
+      replace: false,
+    });
 
   return (
     <div>
@@ -99,23 +115,30 @@ function ClientsList() {
         <Input
           placeholder="Search name, email, phone…"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => handleSearch(e.target.value)}
         />
       </div>
+
       {isLoading ? (
         <TableSkeleton columns={7} rows={6} />
-      ) : filtered.length === 0 ? (
+      ) : clients.length === 0 ? (
         <EmptyState
           icon={<Users2 className="h-5 w-5" />}
           title={q ? "No matches" : "No clients yet"}
-          description={q ? "Try a different name, email, or phone number." : "Import a spreadsheet or add clients one at a time."}
-          action={!q ? (
-            <Button asChild>
-              <Link to="/admin/clients/$id" params={{ id: "new" }}>
-                <Plus className="mr-1 h-4 w-4" /> New client
-              </Link>
-            </Button>
-          ) : undefined}
+          description={
+            q
+              ? "Try a different name, email, or phone number."
+              : "Import a spreadsheet or add clients one at a time."
+          }
+          action={
+            !q ? (
+              <Button asChild>
+                <Link to="/admin/clients/$id" params={{ id: "new" }}>
+                  <Plus className="mr-1 h-4 w-4" /> New client
+                </Link>
+              </Button>
+            ) : undefined
+          }
         />
       ) : (
         <Card>
@@ -132,35 +155,46 @@ function ClientsList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((c) => {
-                const s = latestSub(c.id);
+              {clients.map((c) => {
+                const s = latestSub(c._id);
                 return (
                   <TableRow
-                    key={c.id}
-                    onClick={() => openClient(c.id)}
+                    key={c._id}
+                    onClick={() => openClient(c._id)}
                     className="cursor-pointer"
                   >
                     <TableCell>
                       <div className="font-medium">{c.fullName}</div>
                       <div className="text-xs text-muted-foreground">{c.phone ?? "—"}</div>
                     </TableCell>
-                    <TableCell data-label="Email" className="text-sm">{c.email}</TableCell>
-                    <TableCell data-label="Source" className="text-xs uppercase text-muted-foreground">{c.source}</TableCell>
-                    <TableCell data-label="Plan" className="text-sm">{s?.plan ?? <span className="text-muted-foreground">—</span>}</TableCell>
-                    <TableCell data-label="Subscription">{s ? <SubStatusBadge status={s.status} /> : <span className="text-xs text-muted-foreground">None</span>}</TableCell>
-                    <TableCell data-label="Status"><ClientStatusBadge status={c.status} /></TableCell>
-                    <TableCell
-                      className="text-right"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <TableCell className="text-sm">{c.email}</TableCell>
+                    <TableCell className="text-xs uppercase text-muted-foreground">
+                      {c.source}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {s?.plan ?? <span className="text-muted-foreground">—</span>}
+                    </TableCell>
+                    <TableCell>
+                      {s ? (
+                        <SubStatusBadge status={s.status} />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">None</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <ClientStatusBadge status={c.status} />
+                    </TableCell>
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <Button asChild variant="ghost" size="sm">
-                        <Link to="/admin/clients/$id" params={{ id: c.id }}>Edit</Link>
+                        <Link to="/admin/clients/$id" params={{ id: c._id }}>
+                          Edit
+                        </Link>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="text-destructive"
-                        onClick={() => confirm(`Delete "${c.fullName}"?`) && del.mutate(c.id)}
+                        onClick={() => confirm(`Delete "${c.fullName}"?`) && del.mutate(c._id)}
                       >
                         Delete
                       </Button>
@@ -170,6 +204,9 @@ function ClientsList() {
               })}
             </TableBody>
           </Table>
+          <div className="px-4 pb-3">
+            <Paginator page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} />
+          </div>
         </Card>
       )}
 

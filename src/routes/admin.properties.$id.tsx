@@ -95,7 +95,7 @@ function PropertyEditor() {
   });
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="max-w-full space-y-6">
       <PageHeader
         title={isNew ? "New property" : form.title || "Property"}
         description="Fields mirror the Sanity `project` schema."

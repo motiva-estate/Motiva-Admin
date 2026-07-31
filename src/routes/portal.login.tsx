@@ -16,7 +16,10 @@ export const Route = createFileRoute("/portal/login")({
   head: () => ({
     meta: [
       { title: "Sign in — Motiva Subscriber Portal" },
-      { name: "description", content: "Sign in to view your Motiva subscriptions, documents and project updates." },
+      {
+        name: "description",
+        content: "Sign in to view your Motiva subscriptions, documents and project updates.",
+      },
       { name: "robots", content: "noindex, nofollow" },
       { property: "og:title", content: "Motiva Subscriber Portal" },
       { property: "og:description", content: "Private portal for Motiva Estate subscribers." },
@@ -29,8 +32,8 @@ function PortalLoginPage() {
   const navigate = useNavigate();
   const { user, ready, login } = useAuth();
   const search = useSearch({ from: "/portal/login" });
-  const [email, setEmail] = useState("subscriber@motivaestate.com");
-  const [password, setPassword] = useState("demo");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -75,31 +78,40 @@ function PortalLoginPage() {
             <form onSubmit={onSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required value={email}
-                  onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <button type="button" className="text-xs text-muted-foreground hover:text-foreground"
-                    onClick={() => toast.info("A reset link will be emailed once accounts are live.")}>
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() =>
+                      toast.info("A reset link will be emailed once accounts are live.")
+                    }
+                  >
                     Forgot password?
                   </button>
                 </div>
-                <Input id="password" type="password" required value={password}
-                  onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                />
               </div>
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? "Signing in…" : "Sign in"}
               </Button>
-              <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-                <p className="font-medium text-foreground">Demo subscribers</p>
-                <ul className="mt-1 space-y-0.5">
-                  <li>subscriber@motivaestate.com — Elena (2 subscriptions)</li>
-                  <li>adaeze.portal@motivaestate.com — Adaeze (1 subscription)</li>
-                </ul>
-                <p className="mt-2">Any password works in this demo build.</p>
-              </div>
             </form>
           </CardContent>
         </Card>
