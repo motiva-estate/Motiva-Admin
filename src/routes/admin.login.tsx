@@ -113,16 +113,10 @@ function LoginPage() {
                 <p className="font-medium text-foreground">Seeded accounts</p>
                 <ul className="mt-1 space-y-0.5">
                   <li>superadmin@motivaestate.com — Super Admin</li>
-                  <li>admin@motivaestate.com — Administrator</li>
+                  <li>admin@motivaestate.com — Super Admin</li>
                   <li>editor@motivaestate.com — Content Editor</li>
                   <li>viewer@motivaestate.com — Viewer</li>
                 </ul>
-                <p className="mt-1.5">
-                  Passwords: <code className="font-mono">SuperAdmin123!</code> /{" "}
-                  <code className="font-mono">Admin1234!</code> /{" "}
-                  <code className="font-mono">Editor123!</code> /{" "}
-                  <code className="font-mono">Viewer123!</code>
-                </p>
               </div>
             </form>
           </CardContent>
