@@ -3,6 +3,8 @@ import { CollectionAdmin } from "@/components/admin/CollectionAdmin";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Plus, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -61,6 +63,7 @@ function LandPage() {
         sizes: [],
         description: "",
         estateAmenities: [],
+        galleryUrls: [],
       }}
       columns={[
         {
@@ -169,6 +172,53 @@ function LandPage() {
             accept="image/*"
             category="update_photo"
           />
+          {/* Gallery — stored as galleryUrls: string[] on the Land document */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Gallery images</Label>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setForm({ ...form, galleryUrls: [...(form.galleryUrls ?? []), ""] })}
+              >
+                <Plus className="mr-1 h-3.5 w-3.5" /> Add
+              </Button>
+            </div>
+            {(form.galleryUrls ?? []).length === 0 && (
+              <p className="text-xs text-muted-foreground">No gallery images yet.</p>
+            )}
+            {(form.galleryUrls ?? []).map((url, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <CloudinaryUpload
+                  value={url}
+                  onChange={(u) =>
+                    setForm({
+                      ...form,
+                      galleryUrls: (form.galleryUrls ?? []).map((v, idx) => (idx === i ? u : v)),
+                    })
+                  }
+                  accept="image/*"
+                  category="update_photo"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 text-destructive"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      galleryUrls: (form.galleryUrls ?? []).filter((_, idx) => idx !== i),
+                    })
+                  }
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
         </>
       )}
     />

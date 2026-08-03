@@ -39,7 +39,7 @@ function CompanyPage() {
   const removeStat = (i: number) => setForm({ ...form, stats: stats.filter((_, x) => x !== i) });
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-full">
       <PageHeader
         title="Company"
         description="Fields mirror the Sanity `companyInfo` singleton."

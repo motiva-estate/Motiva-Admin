@@ -48,7 +48,7 @@ function ContactPage() {
   const removeSocial = (i: number) => setForm({ ...form, socialLinks: social.filter((_, x) => x !== i) });
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-full">
       <PageHeader
         title="Contact"
         description="Fields mirror the Sanity `contactInfo` singleton."

@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { LogOut, LayoutDashboard, FileText, Megaphone, User as UserIcon } from "lucide-react";
 
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/client";
 import { daysUntil } from "@/lib/portal/schedule";
+import { pageProps } from "@/lib/motion";
 
 export const Route = createFileRoute("/portal")({
   component: PortalLayout,
@@ -95,8 +97,8 @@ function PortalShell({
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
           <div className="flex items-start justify-between gap-4">
             <Link to="/portal" className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-md bg-[#D7C49E] text-[#343149] font-display text-lg">
-                M
+              <div className="grid h-10 w-10 place-items-center rounded-md font-display text-lg">
+                <img src="/apple-touch-icon.png" alt="Motiva Estate logo" className="rounded-md" />
               </div>
               <div className="leading-tight">
                 <div className="font-display text-xl">Motiva</div>
@@ -157,7 +159,13 @@ function PortalShell({
           })}
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        {/* <AnimatePresence mode="wait"> */}
+          <motion.div key={pathname} {...pageProps}>
+            {children}
+          </motion.div>
+        {/* </AnimatePresence> */}
+      </main>
     </>
   );
 }

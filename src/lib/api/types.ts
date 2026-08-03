@@ -73,6 +73,7 @@ export interface Project {
   coverImageUrl?: string; // resolved from Sanity image or coverUrl
   coverUrl?: string; // raw external URL fallback
   galleryImages?: string[]; // flattened URLs from Sanity gallery[]
+  galleryUrls?: string[];     // editable list written back as galleryUrls[]
   isPriceInternal?: boolean;
   featured?: boolean;
   order?: number;
@@ -212,10 +213,29 @@ export interface Land {
   estateAmenities?: string[];
   coverImageUrl?: string;
   coverUrl?: string;
+  galleryUrls?: string[];
   order?: number;
   createdAt: string;
   updatedAt: string;
 }
+
+// -------- Sanity: journalEntry --------
+export interface SanityJournalEntry {
+  id: string;
+  title: string;
+  slug?: string;
+  category?: string;
+  excerpt?: string;
+  publishedAt?: string;
+  readingTime?: string;
+  coverUrl?: string;
+  body?: string;
+  order?: number;
+  status: ContentStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
 // -------- CRM (mock-DB) --------
 export interface NextOfKin {

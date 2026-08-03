@@ -95,7 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
           if (me.ok) {
             const userData = await me.json();
-            setUser(normalise(userData));
+            // setUser(normalise(userData));
+            const u = normalise(userData);
+            setUser(u);
+            localStorage.setItem("motiva.user.email", u.email);
           }
         }
       } catch {
@@ -123,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(data.accessToken);
     const u = normalise(data.user);
     setUser(u);
+    localStorage.setItem("motiva.user.email", u.email);
     return u;
   };
 
@@ -138,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setAccessToken(null);
     setUser(null);
+    localStorage.removeItem("motiva.user.email");
   };
 
   const hasRole = (role: Role) => user?.role === role;

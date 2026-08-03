@@ -30,6 +30,8 @@ export const RESOURCES: Record<string, AdminResource> = {
     slugFields: ["slug"],
     imageAliases: projectImageAliases,
     fieldAliases: projectFieldAliases,
+    // galleryUrls is a plain string[] on both admin and Sanity side — no alias needed,
+    // toDoc passes it through unchanged. Sanity schema must have a galleryUrls string[] field.
     coverUrlFallback: { from: "coverUrl", to: "coverImageUrl" },
     deriveContentStatus: true,
   },
@@ -80,6 +82,13 @@ export const RESOURCES: Record<string, AdminResource> = {
     imageAliases: [{ from: "cover", to: "coverImageUrl" }],
     coverUrlFallback: { from: "coverUrl", to: "coverImageUrl" },
   },
+  journal: {
+    admin: "journal",
+    type: "journalEntry",
+    slugFields: ["slug"],
+    imageAliases: [{ from: "cover", to: "coverUrl" }],
+    deriveContentStatus: true,
+  },
 };
 
 // Singleton documents (one row per type).
@@ -89,11 +98,7 @@ export const SINGLETONS: Record<string, ResourceMap> = {
 };
 
 /** Which admin resources are live on Sanity — used by the Settings status panel. */
-export const SANITY_BACKED_RESOURCES = [
-  ...Object.keys(RESOURCES),
-  "company",
-  "contact",
-] as const;
+export const SANITY_BACKED_RESOURCES = [...Object.keys(RESOURCES), "company", "contact"] as const;
 
 export const MOCK_BACKED_RESOURCES = [
   "clients",

@@ -8,6 +8,7 @@ import {
   HelpCircle,
   Users2,
   Building,
+  BookOpen,
   Phone,
   Search as SearchIcon,
   ListOrdered,
@@ -45,6 +46,7 @@ const CONTENT: Item[] = [
   { title: "Properties", url: "/admin/properties", icon: Home, require: "content.edit" },
   { title: "Land", url: "/admin/land", icon: Building, require: "content.edit" },
   { title: "Services", url: "/admin/services", icon: Settings, require: "content.edit" },
+  { title: "Journal", url: "/admin/journal", icon: BookOpen, require: "content.edit" },
   { title: "Gallery", url: "/admin/gallery", icon: Images, require: "content.edit" },
   { title: "Testimonials", url: "/admin/testimonials", icon: MessageSquareQuote, require: "content.edit" },
   { title: "FAQs", url: "/admin/faqs", icon: HelpCircle, require: "content.edit" },
@@ -113,7 +115,7 @@ export function AdminSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-3">
           <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground font-display font-semibold">
-            M
+            <img src="/apple-touch-icon.png" alt="Motiva Estate logo" className="rounded-md" />
           </div>
           {!collapsed && (
             <div className="flex flex-col leading-tight">
@@ -156,8 +158,9 @@ export function AdminSidebar() {
           <button
             type="button"
             onClick={logout}
-            className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="cursor-pointer grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
             aria-label="Sign out"
+            title="Sign out"
           >
             <LogOut className="h-4 w-4" />
           </button>

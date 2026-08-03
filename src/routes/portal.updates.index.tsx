@@ -2,12 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/client";
 import { resolveProjectRef } from "@/lib/portal/project-ref";
+import { pageProps, stagger, staggerItem, slideUp } from "@/lib/motion";
+import { PortalUpdatesSkeleton } from "@/components/portal/PortalSkeletons";
 
 export const Route = createFileRoute("/portal/updates/")({
   head: () => ({
@@ -43,68 +46,87 @@ function PortalUpdates() {
   );
   const shown = (updates ?? []).filter((u) => !filter || u.projectRef === filter);
 
+  if (isLoading) return <PortalUpdatesSkeleton />;
+
   return (
-    <div className="space-y-6">
-      <div>
+    <motion.div className="space-y-6" {...pageProps}>
+      <motion.div variants={slideUp}>
         <h1 className="font-display text-3xl text-foreground">Project updates</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Progress notes posted by the Motiva team for projects and parcels linked to your
           subscriptions.
         </p>
-      </div>
+      </motion.div>
 
       {refs.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            className={`rounded-full border px-3 py-1 text-xs transition ${filter === null ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
+        <motion.div variants={slideUp} className="flex flex-wrap items-center gap-2">
+          <FilterPill
+            active={filter === null}
             onClick={() => setFilter(null)}
-          >
-            All projects
-          </button>
+            label="All projects"
+          />
           {refs.map(([ref, sub]) => (
-            <button
+            <FilterPill
               key={ref}
-              className={`rounded-full border px-3 py-1 text-xs transition ${filter === ref ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
+              active={filter === ref}
               onClick={() => setFilter(ref)}
-            >
-              {sub.plan}
-            </button>
+              label={sub.plan}
+            />
           ))}
-        </div>
+        </motion.div>
       )}
-
-      {isLoading && <div className="text-sm text-muted-foreground">Loading updates…</div>}
 
       {!isLoading && shown.length === 0 && (
-        <Card>
-          <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            No project updates {filter ? "for this project yet." : "yet."}
-          </CardContent>
-        </Card>
+        <motion.div variants={slideUp}>
+          <Card>
+            <CardContent className="py-12 text-center text-sm text-muted-foreground">
+              No project updates {filter ? "for this project yet." : "yet."}
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
-      <div className="space-y-4">
+      <motion.div className="space-y-4" variants={stagger}>
         {shown.map((u) => (
-          <UpdateCard key={u.id} update={u} />
+          <motion.div key={u.id} variants={staggerItem}>
+            <UpdateCard update={u} />
+          </motion.div>
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
-function UpdateCard({
-  update: u,
+function FilterPill({
+  active,
+  onClick,
+  label,
 }: {
-  update: NonNullable<
-    ReturnType<typeof api.projectUpdates.listForClient> extends Promise<infer T> ? T : never
-  >[number];
+  active: boolean;
+  onClick: () => void;
+  label: string;
 }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 text-xs transition-all duration-150 ${
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function UpdateCard({ update: u }: { update: any }) {
   const { data: info } = useQuery({
     queryKey: ["portal", "projectRef", u.projectRef, u.projectRefType],
     queryFn: () => resolveProjectRef(u.projectRef, u.projectRefType),
   });
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden transition-shadow duration-200 hover:shadow-sm">
       <CardContent className="flex gap-0 p-0">
         {info?.coverImageUrl && (
           <div className="hidden w-40 shrink-0 sm:block">
@@ -126,7 +148,7 @@ function UpdateCard({
           <p className="text-sm text-foreground">{u.text}</p>
           {u.photos.length > 0 && (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {u.photos.map((p, i) => (
+              {(u.photos as string[]).map((p, i) => (
                 <img key={i} src={p} alt="" className="h-32 w-full rounded-md object-cover" />
               ))}
             </div>

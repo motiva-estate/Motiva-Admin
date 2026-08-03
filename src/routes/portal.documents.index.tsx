@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { motion } from "framer-motion";
 import { FileText, Lock, ExternalLink } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/client";
+import { pageProps, stagger, staggerItem, slideUp } from "@/lib/motion";
+import { PortalDocumentsSkeleton } from "@/components/portal/PortalSkeletons";
 
 export const Route = createFileRoute("/portal/documents/")({
   head: () => ({
@@ -38,35 +41,36 @@ function PortalDocuments() {
     enabled: !!clientId,
   });
 
-  // Group docs by subscription.
   const groups = (subs ?? []).map((s) => ({
     sub: s,
-    docs: (docs ?? []).filter((d) => d.subscriptionId === s.id),
+    docs: (docs ?? []).filter((d) => d.subscriptionId === (s._id ?? s.id)),
   }));
 
+  if (isLoading) return <PortalDocumentsSkeleton />;
+
   return (
-    <div className="space-y-8">
-      <div>
+    <motion.div className="space-y-8" {...pageProps}>
+      <motion.div variants={slideUp}>
         <h1 className="font-display text-3xl text-foreground">Documents</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Grouped by subscription. Receipts are visible immediately; title deeds and allocation
           letters unlock automatically once the linked payment milestone is met.
         </p>
-      </div>
-
-      {isLoading && <div className="text-sm text-muted-foreground">Loading documents…</div>}
+      </motion.div>
 
       {!isLoading && (!docs || docs.length === 0) && (
-        <Card>
-          <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            No documents have been uploaded to your subscriptions yet.
-          </CardContent>
-        </Card>
+        <motion.div variants={slideUp}>
+          <Card>
+            <CardContent className="py-12 text-center text-sm text-muted-foreground">
+              No documents have been uploaded to your subscriptions yet.
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
-      <div className="space-y-8">
+      <motion.div className="space-y-8" variants={stagger}>
         {groups.map(({ sub, docs: items }) => (
-          <section key={sub.id}>
+          <motion.section key={sub._id ?? sub.id} variants={staggerItem}>
             <div className="mb-3 flex items-end justify-between gap-3">
               <div>
                 <h2 className="font-display text-lg text-foreground">{sub.plan}</h2>
@@ -90,12 +94,10 @@ function PortalDocuments() {
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {items.map((d) => {
-                  // The portal endpoint returns server-computed visibility & url.
-                  // Fall back to the raw visibility field for the locked message.
                   const visible = (d as any).visible ?? false;
                   const url = (d as any).url ?? null;
                   return (
-                    <Card key={d.id}>
+                    <Card key={d.id} className="transition-shadow duration-200 hover:shadow-sm">
                       <CardContent className="flex items-start justify-between gap-4 py-4">
                         <div className="flex items-start gap-3">
                           {visible ? (
@@ -132,9 +134,9 @@ function PortalDocuments() {
                 })}
               </div>
             )}
-          </section>
+          </motion.section>
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

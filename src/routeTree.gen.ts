@@ -27,6 +27,8 @@ import { Route as AdminEnquiriesIndexRouteImport } from './routes/admin.enquirie
 import { Route as AdminFaqsIndexRouteImport } from './routes/admin.faqs.index'
 import { Route as AdminGalleryIndexRouteImport } from './routes/admin.gallery.index'
 import { Route as AdminHomepageIndexRouteImport } from './routes/admin.homepage.index'
+import { Route as AdminJournalIndexRouteImport } from './routes/admin.journal.index'
+import { Route as AdminJournalIdRouteImport } from './routes/admin.journal.$id'
 import { Route as AdminLandIndexRouteImport } from './routes/admin.land.index'
 import { Route as AdminPaymentsIndexRouteImport } from './routes/admin.payments.index'
 import { Route as AdminProjectsIndexRouteImport } from './routes/admin.projects.index'
@@ -137,6 +139,16 @@ const AdminHomepageIndexRoute = AdminHomepageIndexRouteImport.update({
   path: '/homepage/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminJournalIndexRoute = AdminJournalIndexRouteImport.update({
+  id: '/journal/',
+  path: '/journal/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminJournalIdRoute = AdminJournalIdRouteImport.update({
+  id: '/journal/$id',
+  path: '/journal/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLandIndexRoute = AdminLandIndexRouteImport.update({
   id: '/land/',
   path: '/land/',
@@ -243,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/portal/': typeof PortalIndexRoute
   '/admin/clients/$id': typeof AdminClientsIdRoute
   '/admin/clients/import': typeof AdminClientsImportRoute
+  '/admin/journal/$id': typeof AdminJournalIdRoute
   '/admin/projects/$id': typeof AdminProjectsIdRoute
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/properties/$id': typeof AdminPropertiesIdRoute
@@ -256,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/admin/faqs/': typeof AdminFaqsIndexRoute
   '/admin/gallery/': typeof AdminGalleryIndexRoute
   '/admin/homepage/': typeof AdminHomepageIndexRoute
+  '/admin/journal/': typeof AdminJournalIndexRoute
   '/admin/land/': typeof AdminLandIndexRoute
   '/admin/payments/': typeof AdminPaymentsIndexRoute
   '/admin/projects/': typeof AdminProjectsIndexRoute
@@ -280,6 +294,7 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalIndexRoute
   '/admin/clients/$id': typeof AdminClientsIdRoute
   '/admin/clients/import': typeof AdminClientsImportRoute
+  '/admin/journal/$id': typeof AdminJournalIdRoute
   '/admin/projects/$id': typeof AdminProjectsIdRoute
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/properties/$id': typeof AdminPropertiesIdRoute
@@ -293,6 +308,7 @@ export interface FileRoutesByTo {
   '/admin/faqs': typeof AdminFaqsIndexRoute
   '/admin/gallery': typeof AdminGalleryIndexRoute
   '/admin/homepage': typeof AdminHomepageIndexRoute
+  '/admin/journal': typeof AdminJournalIndexRoute
   '/admin/land': typeof AdminLandIndexRoute
   '/admin/payments': typeof AdminPaymentsIndexRoute
   '/admin/projects': typeof AdminProjectsIndexRoute
@@ -320,6 +336,7 @@ export interface FileRoutesById {
   '/portal/': typeof PortalIndexRoute
   '/admin/clients/$id': typeof AdminClientsIdRoute
   '/admin/clients/import': typeof AdminClientsImportRoute
+  '/admin/journal/$id': typeof AdminJournalIdRoute
   '/admin/projects/$id': typeof AdminProjectsIdRoute
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/properties/$id': typeof AdminPropertiesIdRoute
@@ -333,6 +350,7 @@ export interface FileRoutesById {
   '/admin/faqs/': typeof AdminFaqsIndexRoute
   '/admin/gallery/': typeof AdminGalleryIndexRoute
   '/admin/homepage/': typeof AdminHomepageIndexRoute
+  '/admin/journal/': typeof AdminJournalIndexRoute
   '/admin/land/': typeof AdminLandIndexRoute
   '/admin/payments/': typeof AdminPaymentsIndexRoute
   '/admin/projects/': typeof AdminProjectsIndexRoute
@@ -361,6 +379,7 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/admin/clients/$id'
     | '/admin/clients/import'
+    | '/admin/journal/$id'
     | '/admin/projects/$id'
     | '/admin/projects/new'
     | '/admin/properties/$id'
@@ -374,6 +393,7 @@ export interface FileRouteTypes {
     | '/admin/faqs/'
     | '/admin/gallery/'
     | '/admin/homepage/'
+    | '/admin/journal/'
     | '/admin/land/'
     | '/admin/payments/'
     | '/admin/projects/'
@@ -398,6 +418,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/admin/clients/$id'
     | '/admin/clients/import'
+    | '/admin/journal/$id'
     | '/admin/projects/$id'
     | '/admin/projects/new'
     | '/admin/properties/$id'
@@ -411,6 +432,7 @@ export interface FileRouteTypes {
     | '/admin/faqs'
     | '/admin/gallery'
     | '/admin/homepage'
+    | '/admin/journal'
     | '/admin/land'
     | '/admin/payments'
     | '/admin/projects'
@@ -437,6 +459,7 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/admin/clients/$id'
     | '/admin/clients/import'
+    | '/admin/journal/$id'
     | '/admin/projects/$id'
     | '/admin/projects/new'
     | '/admin/properties/$id'
@@ -450,6 +473,7 @@ export interface FileRouteTypes {
     | '/admin/faqs/'
     | '/admin/gallery/'
     | '/admin/homepage/'
+    | '/admin/journal/'
     | '/admin/land/'
     | '/admin/payments/'
     | '/admin/projects/'
@@ -601,6 +625,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminHomepageIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/journal/': {
+      id: '/admin/journal/'
+      path: '/journal'
+      fullPath: '/admin/journal/'
+      preLoaderRoute: typeof AdminJournalIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/journal/$id': {
+      id: '/admin/journal/$id'
+      path: '/journal/$id'
+      fullPath: '/admin/journal/$id'
+      preLoaderRoute: typeof AdminJournalIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/land/': {
       id: '/admin/land/'
       path: '/land'
@@ -742,6 +780,7 @@ interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminClientsIdRoute: typeof AdminClientsIdRoute
   AdminClientsImportRoute: typeof AdminClientsImportRoute
+  AdminJournalIdRoute: typeof AdminJournalIdRoute
   AdminProjectsIdRoute: typeof AdminProjectsIdRoute
   AdminProjectsNewRoute: typeof AdminProjectsNewRoute
   AdminPropertiesIdRoute: typeof AdminPropertiesIdRoute
@@ -754,6 +793,7 @@ interface AdminRouteChildren {
   AdminFaqsIndexRoute: typeof AdminFaqsIndexRoute
   AdminGalleryIndexRoute: typeof AdminGalleryIndexRoute
   AdminHomepageIndexRoute: typeof AdminHomepageIndexRoute
+  AdminJournalIndexRoute: typeof AdminJournalIndexRoute
   AdminLandIndexRoute: typeof AdminLandIndexRoute
   AdminPaymentsIndexRoute: typeof AdminPaymentsIndexRoute
   AdminProjectsIndexRoute: typeof AdminProjectsIndexRoute
@@ -773,6 +813,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminClientsIdRoute: AdminClientsIdRoute,
   AdminClientsImportRoute: AdminClientsImportRoute,
+  AdminJournalIdRoute: AdminJournalIdRoute,
   AdminProjectsIdRoute: AdminProjectsIdRoute,
   AdminProjectsNewRoute: AdminProjectsNewRoute,
   AdminPropertiesIdRoute: AdminPropertiesIdRoute,
@@ -785,6 +826,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFaqsIndexRoute: AdminFaqsIndexRoute,
   AdminGalleryIndexRoute: AdminGalleryIndexRoute,
   AdminHomepageIndexRoute: AdminHomepageIndexRoute,
+  AdminJournalIndexRoute: AdminJournalIndexRoute,
   AdminLandIndexRoute: AdminLandIndexRoute,
   AdminPaymentsIndexRoute: AdminPaymentsIndexRoute,
   AdminProjectsIndexRoute: AdminProjectsIndexRoute,

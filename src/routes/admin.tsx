@@ -1,10 +1,12 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { useAuth } from "@/lib/auth/context";
 import { RoleBadge } from "@/components/admin/StatusBadges";
+import { pageProps } from "@/lib/motion";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -59,7 +61,11 @@ function AdminLayout() {
             </div>
           </header>
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
-            <Outlet />
+            {/* <AnimatePresence mode="wait"> */}
+              <motion.div key={pathname} {...pageProps}>
+                <Outlet />
+              </motion.div>
+            {/* </AnimatePresence> */}
           </main>
         </div>
       </div>

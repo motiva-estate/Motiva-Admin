@@ -11,6 +11,7 @@ node_modules
 motiva-backend
 dist
 dist-ssr
+.env
 .output
 .vinxi
 .tanstack/**

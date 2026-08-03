@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
 import { api } from "@/lib/api/client";
 import type { Client, ClientSource, ClientStatus } from "@/lib/api/types";
 import { SubStatusBadge } from "@/components/admin/StatusBadges";
@@ -126,51 +127,10 @@ function ClientEditor() {
     },
   });
 
-  const uploadField = (
-    label: string,
-    key: "idDocumentUrl" | "utilityBillUrl" | "passportPhotoUrl",
-  ) => (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex items-center gap-2">
-        <Input
-          placeholder="https://…"
-          value={form[key] ?? ""}
-          onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => document.getElementById(`file-${key}`)?.click()}
-        >
-          Upload
-        </Button>
-        <input
-          id={`file-${key}`}
-          type="file"
-          className="hidden"
-          accept={key === "passportPhotoUrl" ? "image/*" : "image/*,.pdf"}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            const url = URL.createObjectURL(file);
-            setForm((f) => ({ ...f, [key]: url }));
-          }}
-        />
-      </div>
-      {form[key] ? (
-        <a
-          href={form[key]}
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs text-primary underline"
-        >
-          Preview file
-        </a>
-      ) : null}
-    </div>
-  );
+  // KYC fields — uploaded immediately to Cloudinary via /api/upload.
+  // The returned secureUrl is stored in form state and persisted with the
+  // client record on save. Using the correct categories routes each file to
+  // the right Cloudinary folder: kyc_id, kyc_utility, kyc_photo.
 
   return (
     <div className="grid max-w-full grid-cols-1 gap-3 lg:grid-cols-4">
@@ -295,9 +255,7 @@ function ClientEditor() {
                       />
                       <div>
                         <div className="text-sm font-medium">{p.title}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {p.location}
-                        </div>
+                        <div className="text-xs text-muted-foreground">{p.location}</div>
                       </div>
                     </label>
                   );
@@ -351,9 +309,29 @@ function ClientEditor() {
             <CardTitle>Documents</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {uploadField("Valid means of identification", "idDocumentUrl")}
-            {uploadField("Utility bill", "utilityBillUrl")}
-            {uploadField("Passport photograph", "passportPhotoUrl")}
+            <CloudinaryUpload
+              label="Valid means of identification"
+              value={form.idDocumentUrl ?? ""}
+              onChange={(url) => setForm((f) => ({ ...f, idDocumentUrl: url }))}
+              accept="image/*,.pdf"
+              category="kyc_id"
+              maxSize={15 * 1024 * 1024}
+            />
+            <CloudinaryUpload
+              label="Utility bill"
+              value={form.utilityBillUrl ?? ""}
+              onChange={(url) => setForm((f) => ({ ...f, utilityBillUrl: url }))}
+              accept="image/*,.pdf"
+              category="kyc_utility"
+              maxSize={15 * 1024 * 1024}
+            />
+            <CloudinaryUpload
+              label="Passport photograph"
+              value={form.passportPhotoUrl ?? ""}
+              onChange={(url) => setForm((f) => ({ ...f, passportPhotoUrl: url }))}
+              accept="image/*"
+              category="kyc_photo"
+            />
           </CardContent>
         </Card>
 

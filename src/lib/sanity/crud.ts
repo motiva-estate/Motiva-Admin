@@ -9,10 +9,11 @@ import { sanityCreate, sanityRemove, sanityUpdate } from "./writes.functions";
 function currentActorEmail(): string {
   if (typeof window === "undefined") return "";
   try {
-    const raw = window.localStorage.getItem("motiva.admin.session.v1");
-    if (!raw) return "";
-    const parsed = JSON.parse(raw) as { email?: string };
-    return parsed.email ?? "";
+    // const raw = window.localStorage.getItem("motiva.admin.session.v1");
+    // if (!raw) return "";
+    // const parsed = JSON.parse(raw) as { email?: string };
+    // return parsed.email ?? "";
+    return window.localStorage.getItem("motiva.user.email") ?? "";
   } catch {
     return "";
   }

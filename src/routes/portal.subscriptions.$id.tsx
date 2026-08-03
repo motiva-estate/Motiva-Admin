@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   CalendarClock,
@@ -21,6 +22,8 @@ import { api } from "@/lib/api/client";
 import { currency, isDocumentVisible, resolveDocumentUrl } from "@/lib/portal/visibility";
 import { buildSchedule } from "@/lib/portal/schedule";
 import { resolveProjectRef } from "@/lib/portal/project-ref";
+import { pageProps, stagger, staggerItem, slideUp } from "@/lib/motion";
+import { PortalSubDetailSkeleton } from "@/components/portal/PortalSkeletons";
 
 export const Route = createFileRoute("/portal/subscriptions/$id")({
   head: () => ({
@@ -68,6 +71,7 @@ function SubscriptionDetail() {
   });
 
   if (!sub) {
+    if (!subs) return <PortalSubDetailSkeleton />;
     return (
       <Card>
         <CardContent className="py-12 text-center text-sm text-muted-foreground">
@@ -88,18 +92,18 @@ function SubscriptionDetail() {
   const schedule = buildSchedule(sub);
 
   return (
-    <div className="space-y-8">
-      <div>
+    <motion.div className="space-y-8" {...pageProps}>
+      <motion.div variants={slideUp}>
         <Link
           to="/portal"
           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to overview
         </Link>
-      </div>
+      </motion.div>
 
       {/* Hero */}
-      <div className="overflow-hidden rounded-xl border border-border">
+      <motion.div variants={slideUp} className="overflow-hidden rounded-xl border border-border">
         <div className="relative h-56 w-full bg-muted sm:h-64">
           {info?.coverImageUrl && (
             <img src={info.coverImageUrl} alt={info.name} className="h-full w-full object-cover" />
@@ -119,10 +123,10 @@ function SubscriptionDetail() {
             </Badge>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Payment overview */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <motion.div variants={slideUp} className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardContent className="space-y-4 py-5">
             <div className="grid grid-cols-3 gap-3 text-sm">
@@ -175,178 +179,179 @@ function SubscriptionDetail() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
-      {/* Schedule */}
-      <section>
-        <h2 className="mb-3 font-display text-xl">Payment schedule</h2>
-        <Card>
-          <CardContent className="p-0">
-            <ul className="divide-y divide-border">
-              {schedule.map((r) => (
-                <li
-                  key={r.index}
-                  className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
-                >
-                  <span className="flex items-center gap-3">
-                    {r.status === "paid" ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    ) : r.status === "next" ? (
-                      <CalendarClock className="h-4 w-4 text-[#8a6f2f]" />
-                    ) : (
-                      <Circle className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span>
-                      <span className="font-medium text-foreground">Installment {r.index}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        {format(new Date(r.dueDate), "PPP")}
-                      </span>
-                    </span>
-                  </span>
-                  <span className="flex items-center gap-3">
-                    <span className="text-sm">{currency(r.amount, sub.currency)}</span>
-                    <Badge
-                      variant={
-                        r.status === "paid"
-                          ? "secondary"
-                          : r.status === "next"
-                            ? "default"
-                            : "outline"
-                      }
-                    >
-                      {r.status}
-                    </Badge>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Payment history */}
-      <section>
-        <h2 className="mb-3 font-display text-xl">Payment history</h2>
-        {payments && payments.length > 0 ? (
+      <motion.div className="space-y-6" variants={stagger}>
+        <motion.section variants={staggerItem}>
+          <h2 className="mb-3 font-display text-xl">Payment schedule</h2>
           <Card>
             <CardContent className="p-0">
               <ul className="divide-y divide-border">
-                {payments.map((p) => (
+                {schedule.map((r) => (
                   <li
-                    key={p.id}
+                    key={r.index}
                     className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
                   >
-                    <div>
-                      <div className="font-medium text-foreground">{p.label}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(p.date), "PPP")}
-                      </div>
-                    </div>
-                    <div className="text-sm font-medium">{currency(p.amount, p.currency)}</div>
+                    <span className="flex items-center gap-3">
+                      {r.status === "paid" ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      ) : r.status === "next" ? (
+                        <CalendarClock className="h-4 w-4 text-[#8a6f2f]" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span>
+                        <span className="font-medium text-foreground">Installment {r.index}</span>
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          {format(new Date(r.dueDate), "PPP")}
+                        </span>
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-3">
+                      <span className="text-sm">{currency(r.amount, sub.currency)}</span>
+                      <Badge
+                        variant={
+                          r.status === "paid"
+                            ? "secondary"
+                            : r.status === "next"
+                              ? "default"
+                              : "outline"
+                        }
+                      >
+                        {r.status}
+                      </Badge>
+                    </span>
                   </li>
                 ))}
               </ul>
             </CardContent>
           </Card>
-        ) : (
-          <Card>
-            <CardContent className="py-6 text-center text-sm text-muted-foreground">
-              No payments recorded yet.
-            </CardContent>
-          </Card>
-        )}
-      </section>
+        </motion.section>
 
-      {/* Documents */}
-      <section>
-        <h2 className="mb-3 font-display text-xl">Documents</h2>
-        {docs && docs.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {docs.map((d) => {
-              const visible = isDocumentVisible(d, sub);
-              const url = resolveDocumentUrl(d, sub);
-              return (
-                <Card key={d.id}>
-                  <CardContent className="flex items-start justify-between gap-3 py-4">
-                    <div className="flex items-start gap-3">
-                      {visible ? (
-                        <FileText className="mt-0.5 h-5 w-5 text-primary" />
-                      ) : (
-                        <Lock className="mt-0.5 h-5 w-5 text-muted-foreground" />
-                      )}
+        {/* Payment history */}
+        <motion.section variants={staggerItem}>
+          <h2 className="mb-3 font-display text-xl">Payment history</h2>
+          {payments && payments.length > 0 ? (
+            <Card>
+              <CardContent className="p-0">
+                <ul className="divide-y divide-border">
+                  {payments.map((p) => (
+                    <li
+                      key={p.id}
+                      className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
+                    >
                       <div>
-                        <div className="text-sm font-medium text-foreground">{d.label}</div>
+                        <div className="font-medium text-foreground">{p.label}</div>
                         <div className="text-xs text-muted-foreground">
-                          Uploaded {format(new Date(d.uploadedAt), "PP")}
+                          {format(new Date(p.date), "PPP")}
                         </div>
-                        {!visible && (
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {d.visibility === "on_full_payment"
-                              ? "Unlocks once fully paid."
-                              : `Unlocks on: ${d.visibility.replace("on_milestone:", "")}`}
-                          </div>
-                        )}
                       </div>
+                      <div className="text-sm font-medium">{currency(p.amount, p.currency)}</div>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="py-6 text-center text-sm text-muted-foreground">
+                No payments recorded yet.
+              </CardContent>
+            </Card>
+          )}
+        </motion.section>
+
+        {/* Documents */}
+        <motion.section variants={staggerItem}>
+          <h2 className="mb-3 font-display text-xl">Documents</h2>
+          {docs && docs.length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {docs.map((d) => {
+                const visible = isDocumentVisible(d, sub);
+                const url = resolveDocumentUrl(d, sub);
+                return (
+                  <Card key={d.id}>
+                    <CardContent className="flex items-start justify-between gap-3 py-4">
+                      <div className="flex items-start gap-3">
+                        {visible ? (
+                          <FileText className="mt-0.5 h-5 w-5 text-primary" />
+                        ) : (
+                          <Lock className="mt-0.5 h-5 w-5 text-muted-foreground" />
+                        )}
+                        <div>
+                          <div className="text-sm font-medium text-foreground">{d.label}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Uploaded {format(new Date(d.uploadedAt), "PP")}
+                          </div>
+                          {!visible && (
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              {d.visibility === "on_full_payment"
+                                ? "Unlocks once fully paid."
+                                : `Unlocks on: ${d.visibility.replace("on_milestone:", "")}`}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {visible && url ? (
+                        <Button asChild size="sm" variant="outline">
+                          <a href={url} target="_blank" rel="noreferrer">
+                            View <ExternalLink className="ml-1 h-3 w-3" />
+                          </a>
+                        </Button>
+                      ) : (
+                        <Badge variant="outline">Locked</Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-6 text-center text-sm text-muted-foreground">
+                No documents attached yet.
+              </CardContent>
+            </Card>
+          )}
+        </motion.section>
+
+        {/* Updates */}
+        <motion.section variants={staggerItem}>
+          <h2 className="mb-3 font-display text-xl">Project updates</h2>
+          {updates && updates.length > 0 ? (
+            <div className="space-y-3">
+              {updates.map((u) => (
+                <Card key={u.id}>
+                  <CardContent className="space-y-3 py-4">
+                    <div className="text-xs text-muted-foreground">
+                      {format(new Date(u.postedAt), "PPP")}
                     </div>
-                    {visible && url ? (
-                      <Button asChild size="sm" variant="outline">
-                        <a href={url} target="_blank" rel="noreferrer">
-                          View <ExternalLink className="ml-1 h-3 w-3" />
-                        </a>
-                      </Button>
-                    ) : (
-                      <Badge variant="outline">Locked</Badge>
+                    <p className="text-sm text-foreground">{u.text}</p>
+                    {u.photos.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {u.photos.map((p, i) => (
+                          <img
+                            key={i}
+                            src={p}
+                            alt=""
+                            className="h-32 w-full rounded-md object-cover"
+                          />
+                        ))}
+                      </div>
                     )}
                   </CardContent>
                 </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="py-6 text-center text-sm text-muted-foreground">
-              No documents attached yet.
-            </CardContent>
-          </Card>
-        )}
-      </section>
-
-      {/* Updates */}
-      <section>
-        <h2 className="mb-3 font-display text-xl">Project updates</h2>
-        {updates && updates.length > 0 ? (
-          <div className="space-y-3">
-            {updates.map((u) => (
-              <Card key={u.id}>
-                <CardContent className="space-y-3 py-4">
-                  <div className="text-xs text-muted-foreground">
-                    {format(new Date(u.postedAt), "PPP")}
-                  </div>
-                  <p className="text-sm text-foreground">{u.text}</p>
-                  {u.photos.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                      {u.photos.map((p, i) => (
-                        <img
-                          key={i}
-                          src={p}
-                          alt=""
-                          className="h-32 w-full rounded-md object-cover"
-                        />
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="py-6 text-center text-sm text-muted-foreground">
-              No updates yet.
-            </CardContent>
-          </Card>
-        )}
-      </section>
-    </div>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-6 text-center text-sm text-muted-foreground">
+                No updates yet.
+              </CardContent>
+            </Card>
+          )}
+        </motion.section>
+      </motion.div>
+    </motion.div>
   );
 }

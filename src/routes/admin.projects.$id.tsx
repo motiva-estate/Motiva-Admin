@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Plus, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -76,12 +77,14 @@ function ProjectEditor() {
   });
   const [amenitiesText, setAmenitiesText] = useState("");
   const [nearbyText, setNearbyText] = useState("");
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
 
   useEffect(() => {
     if (existing) {
       setForm(existing);
       setAmenitiesText((existing.amenities ?? []).join("\n"));
       setNearbyText((existing.nearby ?? []).join("\n"));
+      setGalleryUrls(existing.galleryUrls ?? []);
     }
   }, [existing]);
 
@@ -97,6 +100,7 @@ function ProjectEditor() {
           .split("\n")
           .map((s) => s.trim())
           .filter(Boolean),
+        galleryUrls,
       };
       if (isNew) return api.projects.create({ ...payload, createdById: user!.id });
       return api.projects.update(id, payload);
@@ -386,6 +390,42 @@ function ProjectEditor() {
             onChange={(e) => setNearbyText(e.target.value)}
             placeholder="Ikoyi Golf Club&#10;Landmark Beach"
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle>Gallery images</CardTitle>
+          <Button size="sm" variant="outline" onClick={() => setGalleryUrls((u) => [...u, ""])}>
+            <Plus className="mr-1 h-4 w-4" /> Add
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {galleryUrls.length === 0 && (
+            <p className="text-sm text-muted-foreground">No gallery images yet.</p>
+          )}
+          {galleryUrls.map((url, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <CloudinaryUpload
+                value={url}
+                onChange={(u) =>
+                  setGalleryUrls((prev) => prev.map((v, idx) => (idx === i ? u : v)))
+                }
+                accept="image/*"
+                category="update_photo"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="shrink-0 text-destructive"
+                onClick={() => setGalleryUrls((prev) => prev.filter((_, idx) => idx !== i))}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
         </CardContent>
       </Card>
 

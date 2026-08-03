@@ -34,6 +34,7 @@ import type {
   SubscriberDocument,
   Testimonial,
   User,
+  SanityJournalEntry,
 } from "./types";
 
 // ── HTTP helper ──────────────────────────────────────────────────────────────
@@ -163,6 +164,7 @@ export const api = {
   achievements: makeSanityCrud<Achievement>(RESOURCES.achievements),
   services: makeSanityCrud<Service>(RESOURCES.services),
   land: makeSanityCrud<Land>(RESOURCES.land),
+  journal: makeSanityCrud<SanityJournalEntry>(RESOURCES.journal),
 
   // ── Sanity singletons ─────────────────────────────────────────────────────
   async getCompany(): Promise<CompanyInfo> {
@@ -575,4 +577,5 @@ export type {
   Subscription,
   Testimonial,
   User,
+  SanityJournalEntry,
 };

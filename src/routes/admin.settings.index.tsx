@@ -14,7 +14,7 @@ export const Route = createFileRoute("/admin/settings/")({
 
 function SettingsPage() {
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-full">
       <PageHeader title="Settings" description="System-level configuration." />
       <div className="space-y-4">
         <Card>
