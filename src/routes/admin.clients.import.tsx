@@ -140,6 +140,8 @@ function ClientImport() {
       }
       toast.success(`Imported ${valid.length} client${valid.length === 1 ? "" : "s"}`);
       setRows([]);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Import failed — please try again");
     } finally {
       setImporting(false);
     }

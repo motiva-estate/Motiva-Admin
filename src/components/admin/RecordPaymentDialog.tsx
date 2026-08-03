@@ -73,6 +73,7 @@ export function RecordPaymentDialog({ open, onOpenChange, subscription, allowPic
       toast.success("Payment recorded");
       onOpenChange(false);
     },
+    onError: (e: Error) => toast.error(e.message ?? "Failed to record payment"),
   });
 
   return (

@@ -16,6 +16,9 @@ function AdminLayout() {
   const { user, ready } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const matches = useRouterState({ select: (s) => s.matches });
+  const routeId = matches[matches.length - 1]?.id;
+
   const isLogin = pathname === "/admin/login";
 
   useEffect(() => {
@@ -62,9 +65,9 @@ function AdminLayout() {
           </header>
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
             {/* <AnimatePresence mode="wait"> */}
-              <motion.div key={pathname} {...pageProps}>
-                <Outlet />
-              </motion.div>
+            <motion.div key={pathname} {...pageProps}>
+              <Outlet />
+            </motion.div>
             {/* </AnimatePresence> */}
           </main>
         </div>

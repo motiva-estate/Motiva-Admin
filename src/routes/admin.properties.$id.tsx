@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/context";
+import { useDirty } from "@/lib/use-dirty";
 import type {
   ContentStatus,
   Property,
@@ -89,6 +90,9 @@ function PropertyEditor() {
 
   const canPublish = can("content.publish");
 
+  const dirtyState = { form, amenitiesText, nearbyText, galleryUrls };
+  const { isDirty, markClean } = useDirty(dirtyState, isNew ? null : (existing ?? null));
+
   const save = useMutation({
     mutationFn: async () => {
       const payload: Partial<Property> = {
@@ -107,10 +111,12 @@ function PropertyEditor() {
       return api.properties.update(id, payload);
     },
     onSuccess: (p) => {
+      markClean();
       toast.success(isNew ? "Property created" : "Saved");
       qc.invalidateQueries({ queryKey: ["properties"] });
       if (isNew) navigate({ to: "/admin/properties/$id", params: { id: p.id } });
     },
+    onError: (e: Error) => toast.error(e.message ?? "Save failed"),
   });
 
   return (
@@ -123,7 +129,7 @@ function PropertyEditor() {
             <Button variant="outline" onClick={() => navigate({ to: "/admin/properties" })}>
               Back
             </Button>
-            <Button onClick={() => save.mutate()} disabled={save.isPending}>
+            <Button onClick={() => save.mutate()} disabled={save.isPending || !isDirty}>
               {save.isPending ? "Saving…" : "Save"}
             </Button>
           </div>

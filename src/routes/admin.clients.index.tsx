@@ -63,6 +63,7 @@ function ClientsList() {
       qc.invalidateQueries({ queryKey: ["clients"] });
       toast.success("Client deleted");
     },
+    onError: (e: Error) => toast.error(e.message ?? "Failed to delete client"),
   });
 
   const clients = result?.data ?? [];

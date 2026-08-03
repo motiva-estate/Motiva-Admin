@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/client";
+import { useDirty } from "@/lib/use-dirty";
 import { pageProps, stagger, staggerItem, slideUp } from "@/lib/motion";
 import { PortalAccountSkeleton } from "@/components/portal/PortalSkeletons";
 
@@ -54,6 +55,19 @@ function PortalAccount() {
     }
   }, [client]);
 
+  // Build a plain object from server data so useDirty can compare like-for-like.
+  const serverSnapshot = client
+    ? {
+        email: client.email ?? "",
+        phone: client.phone ?? "",
+        emailNotif: client.notificationPrefs?.email ?? true,
+        whatsappNotif: client.notificationPrefs?.whatsapp ?? true,
+      }
+    : null;
+
+  const dirtyState = { email, phone, emailNotif, whatsappNotif };
+  const { isDirty, markClean } = useDirty(dirtyState, serverSnapshot);
+
   const save = useMutation({
     mutationFn: () =>
       api.portal.updateProfile({
@@ -63,6 +77,7 @@ function PortalAccount() {
         notificationPrefs: { email: emailNotif, whatsapp: whatsappNotif },
       }),
     onSuccess: () => {
+      markClean();
       qc.invalidateQueries({ queryKey: ["portal", "client", clientId] });
       toast.success("Contact details updated");
     },
@@ -128,7 +143,7 @@ function PortalAccount() {
                   placeholder="+234 …"
                 />
               </div>
-              <Button onClick={() => save.mutate()} disabled={save.isPending}>
+              <Button onClick={() => save.mutate()} disabled={save.isPending || !isDirty}>
                 {save.isPending ? "Saving…" : "Save changes"}
               </Button>
               {client?.contactConfirmedAt && (

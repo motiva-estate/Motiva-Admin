@@ -22,7 +22,7 @@ export const pageVariants = {
   animate: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.25, ease: EASE_OUT, staggerChildren: 0.07 },
+    transition: { duration: 0.85, ease: EASE_OUT, staggerChildren: 0.07 },
   },
   exit: { opacity: 0, y: -4, transition: { duration: 0.15, ease: EASE_IN_OUT } },
 };
@@ -61,6 +61,7 @@ export const scalePop = {
     scale: 1,
     transition: { duration: 0.22, ease: EASE_OUT },
   },
+  exit: { opacity: 0, transition: { duration: 0.15, ease: EASE_OUT } },
 };
 
 /** Fade only — for overlays, subtle reveals. */

@@ -19,6 +19,7 @@ import {
 import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/context";
+import { useDirty } from "@/lib/use-dirty";
 import type { ContentStatus, SanityJournalEntry } from "@/lib/api/types";
 
 export const Route = createFileRoute("/admin/journal/$id")({
@@ -63,6 +64,8 @@ function JournalEditor() {
     if (existing) setForm(existing);
   }, [existing]);
 
+  const { isDirty, markClean } = useDirty(form, isNew ? null : (existing ?? null));
+
   const canPublish = can("content.publish");
 
   const save = useMutation({
@@ -71,6 +74,7 @@ function JournalEditor() {
       return api.journal.update(id, form);
     },
     onSuccess: (entry) => {
+      markClean();
       toast.success(isNew ? "Entry created" : "Saved");
       qc.invalidateQueries({ queryKey: ["journal"] });
       if (isNew) navigate({ to: "/admin/journal/$id", params: { id: entry.id } });
@@ -108,7 +112,7 @@ function JournalEditor() {
                 {del.isPending ? "Deleting…" : "Delete"}
               </Button>
             )}
-            <Button onClick={() => save.mutate()} disabled={save.isPending}>
+            <Button onClick={() => save.mutate()} disabled={save.isPending || !isDirty}>
               {save.isPending ? "Saving…" : "Save"}
             </Button>
           </div>

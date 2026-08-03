@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/lib/api/client";
+import { useDirty } from "@/lib/use-dirty";
 import type { Installment, Subscription, SubscriptionStatus } from "@/lib/api/types";
 
 interface Props {
@@ -57,19 +58,25 @@ export function SubscriptionFormDialog({ open, onOpenChange, existing, fixedClie
 
   const [form, setForm] = useState<Partial<Subscription>>(emptyForm(fixedClientId));
 
+  const { isDirty, markClean, resetBaseline } = useDirty(form, null);
+
   useEffect(() => {
     if (!open) return;
     if (existing) {
-      setForm({
+      const initial = {
         ...existing,
         startDate: existing.startDate.slice(0, 10),
         endDate: existing.endDate.slice(0, 10),
         installments: existing.installments ?? [],
-      });
+      };
+      setForm(initial);
+      resetBaseline(initial);
     } else {
-      setForm(emptyForm(fixedClientId));
+      const initial = emptyForm(fixedClientId);
+      setForm(initial);
+      resetBaseline(initial);
     }
-  }, [open, existing, fixedClientId]);
+  }, [open, existing, fixedClientId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = useMutation({
     mutationFn: async () => {
@@ -86,9 +93,11 @@ export function SubscriptionFormDialog({ open, onOpenChange, existing, fixedClie
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["subscriptions"] });
       if (fixedClientId) qc.invalidateQueries({ queryKey: ["subscriptions", fixedClientId] });
+      markClean();
       toast.success(existing ? "Subscription updated" : "Subscription created");
       onOpenChange(false);
     },
+    onError: (e: Error) => toast.error(e.message ?? "Save failed"),
   });
 
   const rows: Installment[] = form.installments ?? [];
@@ -344,7 +353,7 @@ export function SubscriptionFormDialog({ open, onOpenChange, existing, fixedClie
           <Button
             className="w-full"
             onClick={() => save.mutate()}
-            disabled={!form.clientId || !form.plan || save.isPending}
+            disabled={!form.clientId || !form.plan || save.isPending || !isDirty}
           >
             {save.isPending ? "Saving…" : existing ? "Save changes" : "Create subscription"}
           </Button>

@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 motiva-backend
+M-frontend
 dist
 dist-ssr
 .env

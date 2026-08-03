@@ -67,7 +67,11 @@ function AdminUpdates() {
 
   const remove = useMutation({
     mutationFn: (id: string) => api.projectUpdates.remove(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["projectUpdates"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projectUpdates"] });
+      toast.success("Update deleted");
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Failed to delete update"),
   });
 
   return (

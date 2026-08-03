@@ -9,7 +9,11 @@ import { TableSkeleton } from "./Skeletons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 
 interface CollectionProps<T extends { id: string }> {
@@ -33,16 +37,25 @@ export function CollectionAdmin<T extends { id: string }>(props: CollectionProps
   const [editing, setEditing] = useState<T | null>(null);
   const [form, setForm] = useState<Partial<T>>(props.defaults);
 
-  const openNew = () => { setEditing(null); setForm(props.defaults); setDialogOpen(true); };
-  const openEdit = (row: T) => { setEditing(row); setForm(row); setDialogOpen(true); };
+  const openNew = () => {
+    setEditing(null);
+    setForm(props.defaults);
+    setDialogOpen(true);
+  };
+  const openEdit = (row: T) => {
+    setEditing(row);
+    setForm(row);
+    setDialogOpen(true);
+  };
 
   const save = useMutation({
-    mutationFn: () => editing ? props.updater(editing.id, form) : props.creator(form),
+    mutationFn: () => (editing ? props.updater(editing.id, form) : props.creator(form)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [props.queryKey] });
       toast.success(editing ? "Saved" : "Created");
       setDialogOpen(false);
     },
+    onError: (e: Error) => toast.error(e.message ?? "Save failed"),
   });
   const del = useMutation({
     mutationFn: (id: string) => props.remover(id),
@@ -50,6 +63,7 @@ export function CollectionAdmin<T extends { id: string }>(props: CollectionProps
       qc.invalidateQueries({ queryKey: [props.queryKey] });
       toast.success("Deleted");
     },
+    onError: (e: Error) => toast.error(e.message ?? "Delete failed"),
   });
 
   return (
@@ -87,7 +101,11 @@ export function CollectionAdmin<T extends { id: string }>(props: CollectionProps
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                {props.columns.map((c) => <th key={c.header} className="px-4 py-2.5">{c.header}</th>)}
+                {props.columns.map((c) => (
+                  <th key={c.header} className="px-4 py-2.5">
+                    {c.header}
+                  </th>
+                ))}
                 <th className="px-4 py-2.5 text-right">Actions</th>
               </tr>
             </thead>
