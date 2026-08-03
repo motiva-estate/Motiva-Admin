@@ -137,7 +137,7 @@ function ClientEditor() {
   // the right Cloudinary folder: kyc_id, kyc_utility, kyc_photo.
 
   return (
-    <div className="grid max-w-full grid-cols-1 gap-3 lg:grid-cols-4">
+    <div className="grid max-w-full grid-cols-1 md:gap-3 lg:grid-cols-4">
       <div className="col-span-4">
         <PageHeader
           title={isNew ? "New client" : form.fullName || "Client"}

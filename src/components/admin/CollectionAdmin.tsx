@@ -78,11 +78,11 @@ export function CollectionAdmin<T extends { id: string }>(props: CollectionProps
                 <Plus className="mr-1 h-4 w-4" /> New
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent  className="max-w-lg h-full overflow-y-scroll">
               <DialogHeader>
                 <DialogTitle>{editing ? "Edit" : "New"} entry</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-4 mb-24 md:mb-0">
                 {props.renderForm(form, setForm)}
                 <Button className="w-full" onClick={() => save.mutate()} disabled={save.isPending}>
                   {save.isPending ? "Saving…" : "Save"}

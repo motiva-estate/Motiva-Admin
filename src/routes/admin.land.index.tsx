@@ -140,7 +140,7 @@ function LandPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Sizes (sqm, comma-separated)</Label>
+              <Label className="text-nowrap">Sizes(sqm, comma-sep'd)</Label>
               <Input
                 value={(form.sizes ?? []).join(", ")}
                 onChange={(e) => setForm({ ...form, sizes: parseSizes(e.target.value) })}
