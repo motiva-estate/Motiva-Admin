@@ -232,8 +232,10 @@ function AdminDocuments() {
       />
 
       <div className="space-y-3">
-        {docs.map((d) => (
-          <Card key={d.id}>
+        {docs.map((d) => { 
+          console.log("docs data:", d)
+          return (
+          <Card key={d._id}>
             <CardContent className="flex items-start justify-between gap-4 py-4">
               <div className="flex items-start gap-3">
                 <FileText className="mt-0.5 h-5 w-5 text-primary" />
@@ -263,14 +265,14 @@ function AdminDocuments() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => remove.mutate(d.id)}
+                onClick={() => remove.mutate(d._id)}
                 disabled={remove.isPending}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </CardContent>
           </Card>
-        ))}
+        )})}
         {docs.length === 0 && (
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">

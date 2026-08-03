@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useAuth } from "@/lib/auth/context";
+import { usePortalAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/client";
-import { useDirty } from "@/lib/use-dirty";
+// import { useDirty } from "@/lib/use-dirty";
 import { pageProps, stagger, staggerItem, slideUp } from "@/lib/motion";
 import { PortalAccountSkeleton } from "@/components/portal/PortalSkeletons";
 
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/portal/account/")({
 });
 
 function PortalAccount() {
-  const { user } = useAuth();
+  const { user } = usePortalAuth();
   const qc = useQueryClient();
   const clientId = user?.clientId;
 
@@ -65,8 +65,8 @@ function PortalAccount() {
       }
     : null;
 
-  const dirtyState = { email, phone, emailNotif, whatsappNotif };
-  const { isDirty, markClean } = useDirty(dirtyState, serverSnapshot);
+  // const dirtyState = { email, phone, emailNotif, whatsappNotif };
+  // const { isDirty, markClean } = useDirty(dirtyState, serverSnapshot);
 
   const save = useMutation({
     mutationFn: () =>
@@ -77,7 +77,7 @@ function PortalAccount() {
         notificationPrefs: { email: emailNotif, whatsapp: whatsappNotif },
       }),
     onSuccess: () => {
-      markClean();
+      // markClean();
       qc.invalidateQueries({ queryKey: ["portal", "client", clientId] });
       toast.success("Contact details updated");
     },
@@ -143,7 +143,7 @@ function PortalAccount() {
                   placeholder="+234 …"
                 />
               </div>
-              <Button onClick={() => save.mutate()} disabled={save.isPending || !isDirty}>
+              <Button onClick={() => save.mutate()} disabled={save.isPending}>{/* || !isDirty */}
                 {save.isPending ? "Saving…" : "Save changes"}
               </Button>
               {client?.contactConfirmedAt && (

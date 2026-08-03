@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth/context";
+import { usePortalAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/client";
 import type { Subscription } from "@/lib/api/types";
 import { currency } from "@/lib/portal/visibility";
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/portal/")({
 });
 
 function PortalHome() {
-  const { user } = useAuth();
+  const { user } = usePortalAuth();
   const clientId = user?.clientId;
 
   const { data: subs, isLoading } = useQuery({

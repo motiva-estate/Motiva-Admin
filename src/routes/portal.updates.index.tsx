@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/lib/auth/context";
+import { usePortalAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/client";
 import { resolveProjectRef } from "@/lib/portal/project-ref";
 import { pageProps, stagger, staggerItem, slideUp } from "@/lib/motion";
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/portal/updates/")({
 });
 
 function PortalUpdates() {
-  const { user } = useAuth();
+  const { user } = usePortalAuth();
   const clientId = user?.clientId;
   const { data: updates, isLoading } = useQuery({
     queryKey: ["portal", "updates", clientId],

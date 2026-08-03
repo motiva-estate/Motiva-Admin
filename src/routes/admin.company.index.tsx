@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api/client";
-import { useDirty } from "@/lib/use-dirty";
+// import { useDirty } from "@/lib/use-dirty";
 import { FormSkeleton } from "@/components/admin/Skeletons";
 import type { CompanyInfo, CompanyStat } from "@/lib/api/types";
 
@@ -27,13 +27,13 @@ function CompanyPage() {
     if (data) setForm(data);
   }, [data]);
 
-  const { isDirty, markClean } = useDirty(form, data ?? null);
+  // const { isDirty, markClean } = useDirty(form, data ?? null);
 
   const save = useMutation({
     mutationFn: () => api.updateCompany(form),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["company"] });
-      markClean();
+      // markClean();
       toast.success("Company info saved");
     },
   });
@@ -53,7 +53,7 @@ function CompanyPage() {
         title="Company"
         description="Fields mirror the Sanity `companyInfo` singleton."
         actions={
-          <Button onClick={() => save.mutate()} disabled={save.isPending || !isDirty}>
+          <Button onClick={() => save.mutate()} disabled={save.isPending}> {/* || !isDirty */}
             {save.isPending ? "Saving…" : "Save"}
           </Button>
         }

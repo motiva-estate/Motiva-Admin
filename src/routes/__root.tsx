@@ -11,7 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AuthProvider } from "../lib/auth/context";
+import { AdminAuthProvider, PortalAuthProvider } from "../lib/auth/context";
 import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
@@ -131,10 +131,24 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Outlet />
-        <Toaster richColors position="top-right" />
-      </AuthProvider>
+      {/*
+        Both providers are mounted at the root so their React contexts are
+        available everywhere. Each provider silently tries to restore only its
+        own session (via its own dedicated cookie).
+
+        admin.tsx wraps its tree with <AdminAuthProvider> (already done via
+        the provider mounting here — useAuth() picks the nearest one).
+        portal.tsx does the same with <PortalAuthProvider>.
+
+        Mounting both here means neither provider is inside the other's tree,
+        so clearing one session has zero effect on the other.
+      */}
+      <AdminAuthProvider>
+        <PortalAuthProvider>
+          <Outlet />
+          <Toaster richColors position="top-right" />
+        </PortalAuthProvider>
+      </AdminAuthProvider>
     </QueryClientProvider>
   );
 }

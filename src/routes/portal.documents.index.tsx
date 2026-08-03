@@ -7,7 +7,7 @@ import { FileText, Lock, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth/context";
+import { usePortalAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/client";
 import { pageProps, stagger, staggerItem, slideUp } from "@/lib/motion";
 import { PortalDocumentsSkeleton } from "@/components/portal/PortalSkeletons";
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/portal/documents/")({
 });
 
 function PortalDocuments() {
-  const { user } = useAuth();
+  const { user } = usePortalAuth();
   const clientId = user?.clientId;
 
   const { data: subs } = useQuery({

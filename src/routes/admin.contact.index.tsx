@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api/client";
-import { useDirty } from "@/lib/use-dirty";
+// import { useDirty } from "@/lib/use-dirty";
 import { FormSkeleton } from "@/components/admin/Skeletons";
 import type { ContactInfo, Office, SocialLink } from "@/lib/api/types";
 
@@ -26,13 +26,13 @@ function ContactPage() {
     if (data) setForm(data);
   }, [data]);
 
-  const { isDirty, markClean } = useDirty(form, data ?? null);
+  // const { isDirty, markClean } = useDirty(form, data ?? null);
 
   const save = useMutation({
     mutationFn: () => api.updateContact(form),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["contact"] });
-      markClean();
+      // markClean();
       toast.success("Contact info saved");
     },
   });
@@ -65,7 +65,7 @@ function ContactPage() {
         title="Contact"
         description="Fields mirror the Sanity `contactInfo` singleton."
         actions={
-          <Button onClick={() => save.mutate()} disabled={save.isPending || !isDirty}>
+          <Button onClick={() => save.mutate()} disabled={save.isPending}> {/* || !isDirty */}
             {save.isPending ? "Saving…" : "Save"}
           </Button>
         }

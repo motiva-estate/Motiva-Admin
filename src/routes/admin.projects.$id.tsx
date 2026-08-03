@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/context";
-import { useDirty } from "@/lib/use-dirty";
+// import { useDirty } from "@/lib/use-dirty";
 import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
 import type {
   ContentStatus,
@@ -89,8 +89,8 @@ function ProjectEditor() {
     }
   }, [existing]);
 
-  const dirtyState = { form, amenitiesText, nearbyText, galleryUrls };
-  const { isDirty, markClean } = useDirty(dirtyState, isNew ? null : (existing ?? null));
+  // const dirtyState = { form, amenitiesText, nearbyText, galleryUrls };
+  // const { isDirty, markClean } = useDirty(dirtyState, isNew ? null : (existing ?? null));
 
   const save = useMutation({
     mutationFn: async () => {
@@ -110,7 +110,7 @@ function ProjectEditor() {
       return api.projects.update(id, payload);
     },
     onSuccess: (p) => {
-      markClean();
+      // markClean();
       toast.success(isNew ? "Project created" : "Saved");
       qc.invalidateQueries({ queryKey: ["projects"] });
       if (isNew) navigate({ to: "/admin/projects/$id", params: { id: p.id } });
@@ -140,7 +140,7 @@ function ProjectEditor() {
             <Button variant="outline" onClick={() => navigate({ to: "/admin/projects" })}>
               Back
             </Button>
-            <Button onClick={() => save.mutate()} disabled={save.isPending || !isDirty}>
+            <Button onClick={() => save.mutate()} disabled={save.isPending}>{/* || !isDirty */}
               {save.isPending ? "Saving…" : "Save"}
             </Button>
           </div>

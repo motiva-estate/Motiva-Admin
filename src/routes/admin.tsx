@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { useAuth } from "@/lib/auth/context";
+import { useAdminAuth } from "@/lib/auth/context";
 import { RoleBadge } from "@/components/admin/StatusBadges";
 import { pageProps } from "@/lib/motion";
 
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminLayout() {
-  const { user, ready } = useAuth();
+  const { user, ready } = useAdminAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const matches = useRouterState({ select: (s) => s.matches });

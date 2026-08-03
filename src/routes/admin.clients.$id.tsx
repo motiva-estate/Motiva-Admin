@@ -23,7 +23,7 @@ import {
 import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
 import { api } from "@/lib/api/client";
 import type { Client, ClientSource, ClientStatus } from "@/lib/api/types";
-import { useDirty } from "@/lib/use-dirty";
+// import { useDirty } from "@/lib/use-dirty";
 import { SubStatusBadge } from "@/components/admin/StatusBadges";
 import { SubscriptionFormDialog } from "@/components/admin/SubscriptionFormDialog";
 import { RecordPaymentDialog } from "@/components/admin/RecordPaymentDialog";
@@ -122,14 +122,14 @@ function ClientEditor() {
     },
     onSuccess: (c) => {
       toast.success(isNew ? "Client created" : "Saved");
-      markClean();
+      // markClean();
       qc.invalidateQueries({ queryKey: ["clients"] });
       qc.invalidateQueries({ queryKey: ["client", id] });
       if (isNew) navigate({ to: "/admin/clients/$id", params: { id: c._id } });
     },
   });
 
-  const { isDirty, markClean } = useDirty(form, isNew ? null : (existing ?? null));
+  // const { isDirty, markClean } = useDirty(form, isNew ? null : (existing ?? null));
 
   // KYC fields — uploaded immediately to Cloudinary via /api/upload.
   // The returned secureUrl is stored in form state and persisted with the
@@ -146,7 +146,8 @@ function ClientEditor() {
               <Button variant="outline" onClick={() => navigate({ to: "/admin/clients" })}>
                 Back
               </Button>
-              <Button onClick={() => save.mutate()} disabled={save.isPending || !isDirty}>
+              <Button onClick={() => save.mutate()} disabled={save.isPending}>
+                {/* {*|| !isDirty*} */}
                 {save.isPending ? "Saving…" : "Save"}
               </Button>
             </div>

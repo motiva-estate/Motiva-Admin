@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { LogOut, LayoutDashboard, FileText, Megaphone, User as UserIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth/context";
+import { usePortalAuth } from "@/lib/auth/context";
 import { api } from "@/lib/api/client";
 import { daysUntil } from "@/lib/portal/schedule";
 import { pageProps } from "@/lib/motion";
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/portal")({
 });
 
 function PortalLayout() {
-  const { user, ready, logout } = useAuth();
+  const { user, ready, logout } = usePortalAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isLogin = pathname === "/portal/login";
@@ -161,9 +161,9 @@ function PortalShell({
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         {/* <AnimatePresence mode="wait"> */}
-          <motion.div key={pathname} {...pageProps}>
-            {children}
-          </motion.div>
+        <motion.div key={pathname} {...pageProps}>
+          {children}
+        </motion.div>
         {/* </AnimatePresence> */}
       </main>
     </>

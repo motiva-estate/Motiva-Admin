@@ -9,11 +9,13 @@ import { sanityCreate, sanityRemove, sanityUpdate } from "./writes.functions";
 function currentActorEmail(): string {
   if (typeof window === "undefined") return "";
   try {
-    // const raw = window.localStorage.getItem("motiva.admin.session.v1");
-    // if (!raw) return "";
-    // const parsed = JSON.parse(raw) as { email?: string };
-    // return parsed.email ?? "";
-    return window.localStorage.getItem("motiva.user.email") ?? "";
+    // Check both admin and portal keys — whichever is set is the active session.
+    return (
+      window.localStorage.getItem("motiva.admin.email") ??
+      window.localStorage.getItem("motiva.portal.email") ??
+      window.localStorage.getItem("motiva.user.email") ?? // legacy key
+      ""
+    );
   } catch {
     return "";
   }
@@ -37,7 +39,10 @@ export function makeSanityCrud<Row extends { id: string }>(res: AdminResource) {
       return doc ? fromDoc<Row>(doc as never, res) : undefined;
     },
     async create(input: Partial<Row>): Promise<Row> {
-      const content = { ...(res.createDefaults ?? {}), ...toDoc(res, input as Record<string, unknown>) };
+      const content = {
+        ...(res.createDefaults ?? {}),
+        ...toDoc(res, input as Record<string, unknown>),
+      };
       const doc = await sanityCreate({
         data: { actorEmail: currentActorEmail(), type: res.type, content },
       });
@@ -45,7 +50,11 @@ export function makeSanityCrud<Row extends { id: string }>(res: AdminResource) {
     },
     async update(id: string, patch: Partial<Row>): Promise<Row> {
       const doc = await sanityUpdate({
-        data: { actorEmail: currentActorEmail(), id, patch: toDoc(res, patch as Record<string, unknown>) },
+        data: {
+          actorEmail: currentActorEmail(),
+          id,
+          patch: toDoc(res, patch as Record<string, unknown>),
+        },
       });
       return fromDoc<Row>(doc as never, res);
     },
@@ -76,10 +85,9 @@ export function makeSingletonAccess<T extends { id: string }>(res: ResourceMap) 
       return fromDoc<T>(doc as never, res);
     },
     async update(patch: Partial<T>): Promise<T> {
-      const existing = await sanityRead.fetch<{ _id: string } | null>(
-        `*[_type == $type][0]{_id}`,
-        { type: res.type },
-      );
+      const existing = await sanityRead.fetch<{ _id: string } | null>(`*[_type == $type][0]{_id}`, {
+        type: res.type,
+      });
       const clean = toDoc(res, patch as Record<string, unknown>);
       if (existing?._id) {
         const doc = await sanityUpdate({

@@ -41,15 +41,58 @@ import type {
 
 const BASE = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:4000/api";
 
-// Token stored in memory (never localStorage) to avoid XSS exposure.
-// Refresh token lives in an HttpOnly cookie managed by the browser.
-let _accessToken: string | null = null;
+// Token is no longer stored at module level.
+// Each auth context (AdminAuthProvider / PortalAuthProvider) holds its own
+// token in a ref inside the React tree. The req() function accepts the token
+// directly, and callers that don't supply it fall back to a context lookup.
+//
+// For backwards compatibility, components that call api.* directly (outside
+// of a mutation) still work because the token is threaded through the context.
+// The 401 handler reads the current URL to decide where to redirect.
 
+/** Determine the correct login redirect path based on the current URL. */
+function loginRedirectPath(): string {
+  if (typeof window === "undefined") return "/admin/login";
+  return window.location.pathname.startsWith("/portal") ? "/portal/login" : "/admin/login";
+}
+
+/** Determine the correct silent-refresh URL based on the current URL. */
+function refreshEndpoint(): string {
+  if (typeof window === "undefined") return "/auth/refresh";
+  return window.location.pathname.startsWith("/portal") ? "/auth/portal/refresh" : "/auth/refresh";
+}
+
+// The active access token is injected by each auth context via this setter.
+// Admin context sets adminToken; portal context sets portalToken.
+// req() picks the right one based on the current URL.
+let _adminToken: string | null = null;
+let _portalToken: string | null = null;
+
+export function setAdminToken(t: string | null) {
+  _adminToken = t;
+}
+export function setPortalToken(t: string | null) {
+  _portalToken = t;
+}
+
+/** @deprecated Use setAdminToken / setPortalToken — kept for compatibility. */
 export function setAccessToken(t: string | null) {
-  _accessToken = t;
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/portal")) {
+    _portalToken = t;
+  } else {
+    _adminToken = t;
+  }
 }
 export function getAccessToken() {
-  return _accessToken;
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/portal")) {
+    return _portalToken;
+  }
+  return _adminToken;
+}
+
+function activeToken(): string | null {
+  if (typeof window === "undefined") return _adminToken;
+  return window.location.pathname.startsWith("/portal") ? _portalToken : _adminToken;
 }
 
 async function req<T>(
@@ -59,9 +102,10 @@ async function req<T>(
   options: { formData?: FormData; noAuth?: boolean } = {},
 ): Promise<T> {
   const headers: HeadersInit = {};
+  const token = activeToken();
 
-  if (!options.noAuth && _accessToken) {
-    headers["Authorization"] = `Bearer ${_accessToken}`;
+  if (!options.noAuth && token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   if (body && !options.formData) {
@@ -70,20 +114,21 @@ async function req<T>(
 
   const res = await fetch(`${BASE}${path}`, {
     method,
-    credentials: "include", // send HttpOnly refresh-token cookie
+    credentials: "include",
     headers,
     body: options.formData ? options.formData : body ? JSON.stringify(body) : undefined,
   });
 
-  // Handle 401 — try one token refresh then retry
+  // 401 — attempt one silent refresh using the context-appropriate endpoint,
+  // then retry. If that also fails, send the user to the correct login page.
   if (res.status === 401 && !options.noAuth) {
     const refreshed = await tryRefresh();
     if (refreshed) {
       return req<T>(method, path, body, { ...options, noAuth: false });
     }
-    // Force re-login
-    _accessToken = null;
-    window.location.href = "/admin/login";
+    if (typeof window !== "undefined") {
+      window.location.href = loginRedirectPath();
+    }
     throw new Error("Session expired");
   }
 
@@ -92,20 +137,25 @@ async function req<T>(
     throw new Error(err.message ?? `HTTP ${res.status}`);
   }
 
-  // 204 No Content
   if (res.status === 204) return undefined as T;
   return res.json();
 }
 
 async function tryRefresh(): Promise<boolean> {
   try {
-    const res = await fetch(`${BASE}/auth/refresh`, {
+    const endpoint = refreshEndpoint();
+    const res = await fetch(`${BASE}${endpoint}`, {
       method: "POST",
       credentials: "include",
     });
     if (!res.ok) return false;
     const data = await res.json();
-    _accessToken = data.accessToken;
+    // Store in the correct slot
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/portal")) {
+      _portalToken = data.accessToken;
+    } else {
+      _adminToken = data.accessToken;
+    }
     return true;
   } catch {
     return false;
