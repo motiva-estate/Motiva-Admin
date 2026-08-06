@@ -209,7 +209,7 @@ function AdminUpdates() {
                   )}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => remove.mutate(u.id)}>
+              <Button variant="ghost" size="icon" onClick={() => remove.mutate(u._id)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </CardContent>
