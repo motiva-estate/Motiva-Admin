@@ -8,7 +8,6 @@ import { Plus, Trash2, Megaphone, ImagePlus } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -41,11 +40,42 @@ function AdminUpdates() {
   });
   const updates = updatesResult?.data ?? [];
 
+  // Projects and land for the dropdowns
+  const { data: projects } = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => api.projects.list(),
+  });
+  const { data: lands } = useQuery({
+    queryKey: ["land"],
+    queryFn: () => api.land.list(),
+  });
+
   const [open, setOpen] = useState(false);
-  const [projectRef, setProjectRef] = useState("");
   const [projectRefType, setProjectRefType] = useState<"project" | "land">("project");
+  const [projectRef, setProjectRef] = useState("");
   const [text, setText] = useState("");
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
+
+  // Resolve a ref ID to a human-readable name for display in the table
+  const refName = (type: string, ref: string) => {
+    if (!ref) return "—";
+    if (type === "project") {
+      return projects?.find((p) => p.id === ref)?.title ?? ref;
+    }
+    return lands?.find((l) => l.id === ref)?.name ?? ref;
+  };
+
+  // Options for the currently-selected ref type
+  const refOptions =
+    projectRefType === "project"
+      ? (projects ?? []).map((p) => ({ id: p.id, label: p.title }))
+      : (lands ?? []).map((l) => ({ id: l.id, label: l.name }));
+
+  // Reset ref selection when type changes
+  const handleTypeChange = (v: "project" | "land") => {
+    setProjectRefType(v);
+    setProjectRef("");
+  };
 
   const create = useMutation({
     mutationFn: () =>
@@ -59,6 +89,7 @@ function AdminUpdates() {
       qc.invalidateQueries({ queryKey: ["projectUpdates"] });
       toast.success("Update posted");
       setOpen(false);
+      setProjectRef("");
       setText("");
       setSelectedPhotos([]);
     },
@@ -91,34 +122,53 @@ function AdminUpdates() {
                 <DialogTitle>New project update</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Ref type</Label>
-                    <Select
-                      value={projectRefType}
-                      onValueChange={(v) => setProjectRefType(v as "project" | "land")}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="project">Project</SelectItem>
-                        <SelectItem value="land">Land parcel</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Ref ID</Label>
-                    <Input
-                      value={projectRef}
-                      onChange={(e) => setProjectRef(e.target.value)}
-                      placeholder="project-casa-solano"
-                    />
-                  </div>
+                {/* Ref type selector */}
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <Select value={projectRefType} onValueChange={handleTypeChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="project">Project / Residence</SelectItem>
+                      <SelectItem value="land">Land parcel</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
+                {/* Dynamic project / land dropdown */}
                 <div className="space-y-2">
-                  <Label>Update text</Label>
+                  <Label>
+                    {projectRefType === "project" ? "Residence" : "Land parcel"}{" "}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  {refOptions.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No {projectRefType === "project" ? "projects" : "land parcels"} found.
+                    </p>
+                  ) : (
+                    <Select value={projectRef} onValueChange={setProjectRef}>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={`Select a ${projectRefType === "project" ? "residence" : "land parcel"}…`}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {refOptions.map((opt) => (
+                          <SelectItem key={opt.id} value={opt.id}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                {/* Update text */}
+                <div className="space-y-2">
+                  <Label>
+                    Update text <span className="text-destructive">*</span>
+                  </Label>
                   <Textarea
                     rows={4}
                     value={text}
@@ -127,6 +177,7 @@ function AdminUpdates() {
                   />
                 </div>
 
+                {/* Photo picker */}
                 <div className="space-y-2">
                   <Label>Photos (optional — uploaded to Cloudinary)</Label>
                   <div
@@ -184,15 +235,23 @@ function AdminUpdates() {
         }
       />
 
+      {/* Updates list */}
       <div className="space-y-3">
         {updates.map((u: any) => (
-          <Card key={u.id}>
+          <Card key={u.id ?? u._id}>
             <CardContent className="flex items-start justify-between gap-4 py-4">
               <div className="flex items-start gap-3">
                 <Megaphone className="mt-0.5 h-5 w-5 text-primary" />
                 <div>
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {u.projectRefType} · {u.projectRef} · {format(new Date(u.postedAt), "PP")}
+                    <span className="capitalize">{u.projectRefType ?? "project"}</span>
+                    {" · "}
+                    {/* Show the resolved name, falling back to the raw ref only as last resort */}
+                    <span className="font-medium text-foreground">
+                      {refName(u.projectRefType ?? "project", u.projectRef)}
+                    </span>
+                    {" · "}
+                    {format(new Date(u.postedAt ?? u.createdAt), "PP")}
                   </div>
                   <p className="mt-1 text-sm">{u.text}</p>
                   {u.photos?.length > 0 && (
@@ -209,13 +268,18 @@ function AdminUpdates() {
                   )}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => remove.mutate(u._id)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => remove.mutate(u._id ?? u.id)}
+                disabled={remove.isPending}
+              >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </CardContent>
           </Card>
         ))}
-        {updates?.length === 0 && (
+        {updates.length === 0 && (
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
               No updates yet.
